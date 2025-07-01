@@ -10,6 +10,7 @@ dist/
 dist-electron/
 build/
 out/
+release/
 
 # Environment variables
 .env
@@ -104,4 +105,9 @@ app/out/
 
 # Temporary files
 *.tmp
-*.temp 
+*.temp
+
+# Code signing certificates (keep secure!)
+*.p12
+*.cer
+*.pem 

@@ -6,14 +6,31 @@ module.exports = {
     node: true,
   },
   extends: [
-    'eslint:recommended',
+    'eslint:recommended'
   ],
-  ignorePatterns: ['dist', 'dist-electron', '.eslintrc.cjs'],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true
+    }
   },
+  plugins: [
+    '@typescript-eslint'
+  ],
+  ignorePatterns: [
+    'dist', 
+    'dist-electron', 
+    'release',
+    'node_modules',
+    '.eslintrc.cjs',
+    'vite.config.ts',
+    '*.d.ts'
+  ],
   rules: {
-    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-  },
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    'no-undef': 'off' // TypeScript handles this
+  }
 }; 

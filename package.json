@@ -6,6 +6,11 @@
   "author": "BrainLift Generator Team",
   "license": "MIT",
   "private": true,
+  "homepage": "https://github.com/yourusername/brainlift-generator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/brainlift-generator.git"
+  },
   "scripts": {
     "dev": "vite",
     "dev:vite": "vite",
@@ -13,6 +18,17 @@
     "build": "npm run build:vite && npm run build:electron",
     "build:vite": "vite build",
     "build:electron": "electron-builder",
+    "build:win": "npm run build:vite && electron-builder --win",
+    "build:mac": "npm run build:vite && electron-builder --mac",
+    "build:linux": "npm run build:vite && electron-builder --linux",
+    "build:all": "npm run build:vite && electron-builder --win --mac --linux",
+    "dist": "npm run build",
+    "publish": "npm run build && electron-builder --publish=always",
+    "deploy:check": "node scripts/deploy.js check",
+    "deploy:build": "node scripts/deploy.js build",
+    "deploy:win": "node scripts/deploy.js build win",
+    "deploy:release": "node scripts/deploy.js release",
+    "deploy:full": "node scripts/deploy.js full",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx --fix",
     "test": "jest"
@@ -37,8 +53,8 @@
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-react": "^4.0.0",
     "autoprefixer": "^10.4.0",
     "concurrently": "^8.0.0",
@@ -46,8 +62,8 @@
     "electron": "^27.0.0",
     "electron-builder": "^24.0.0",
     "eslint": "^8.0.0",
-    "eslint-plugin-react": "^7.33.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.3.0",
     "typescript": "^5.0.0",
@@ -58,5 +74,89 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "build": {
+    "appId": "com.brainlift.generator",
+    "productName": "BrainLift Generator",
+    "copyright": "Copyright © 2024 BrainLift Generator Team",
+    "buildVersion": "1.0.0",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "resources"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "publisherName": "BrainLift Generator Team",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "BrainLift Generator"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Office"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "yourusername",
+      "repo": "brainlift-generator",
+      "private": false
+    }
   }
 }
