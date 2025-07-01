@@ -22,8 +22,10 @@ function createWindow(): BrowserWindow {
   });
 
   // Load the renderer
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173');
+  const isDevelopment = process.env.NODE_ENV === 'development' || !app.isPackaged;
+  
+  if (isDevelopment) {
+    mainWindow.loadURL('http://127.0.0.1:5173');
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
@@ -37,6 +39,13 @@ function createWindow(): BrowserWindow {
 
   return mainWindow;
 }
+
+/**
+ * Configure Electron app settings
+ */
+// Reduce GPU-related warnings on Windows
+app.commandLine.appendSwitch('disable-gpu-sandbox');
+app.commandLine.appendSwitch('disable-software-rasterizer');
 
 /**
  * App event handlers

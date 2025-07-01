@@ -52,6 +52,8 @@ export default defineConfig({
     outDir: '../../dist'
   },
   server: {
-    port: 5173
+    port: 5173,
+    host: '127.0.0.1', // Explicitly bind to IPv4 localhost
+    strictPort: true
   }
 }); 
