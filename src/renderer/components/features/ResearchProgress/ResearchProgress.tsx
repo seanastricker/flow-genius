@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDocumentStore } from '../../../stores/document-store';
 import { useResearchStore } from '../../../stores/research-store';
 import type { ResearchProgress } from '../../../stores/document-store';
@@ -143,6 +144,7 @@ function ResearchSection({
  * Main research progress component
  */
 export function ResearchProgress(): JSX.Element {
+  const navigate = useNavigate();
   const {
     currentDocument,
     startResearchWorkflow,
@@ -165,6 +167,29 @@ export function ResearchProgress(): JSX.Element {
                           currentDocument?.status === 'purpose-definition';
   const isResearchActive = currentDocument?.status === 'research-active';
   const isResearchComplete = currentDocument?.status === 'research-complete';
+
+  /**
+   * Handle navigation to review page
+   */
+  function handleReviewResults(): void {
+    if (isResearchComplete) {
+      navigate('/review');
+    }
+  }
+
+  /**
+   * Auto-navigate to review page when research completes
+   */
+  useEffect(() => {
+    if (isResearchComplete) {
+      // Add a small delay to allow completion message to show
+      const timer = setTimeout(() => {
+        navigate('/review');
+      }, 2000); // 2 second delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [isResearchComplete, navigate]);
 
   /**
    * Handle starting research workflow
@@ -284,7 +309,7 @@ export function ResearchProgress(): JSX.Element {
 
           {isResearchComplete && (
             <button
-              onClick={() => {/* Navigate to review page */}}
+              onClick={handleReviewResults}
               className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium
                          hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500
                          transition-colors duration-200"

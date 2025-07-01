@@ -4,8 +4,22 @@
  * Communicates with renderer process via IPC
  */
 
+// Polyfill for crypto.getRandomValues() to fix LangGraph uuid dependency issues
+// This must be done before any LangGraph imports
+import { randomBytes } from 'crypto';
+
+if (typeof global !== 'undefined' && !global.crypto) {
+  global.crypto = {
+    getRandomValues: (array: Uint8Array) => {
+      const bytes = randomBytes(array.length);
+      array.set(bytes);
+      return array;
+    }
+  } as any;
+}
+
 import { ipcMain, BrowserWindow } from 'electron';
-import { WorkerManager, type WorkerManagerConfig } from '../workers/worker-manager';
+import { LangGraphWorkflowManager, type LangGraphWorkflowConfig } from '../workers/langraph-workflow-manager';
 import type { WorkerJob, WorkerResult } from '../workers/research-worker';
 
 interface ResearchServiceConfig {
@@ -20,7 +34,7 @@ interface ResearchServiceConfig {
  * Research service that manages worker threads in the main process
  */
 export class ResearchService {
-  private workerManager: WorkerManager | null = null;
+  private workflowManager: LangGraphWorkflowManager | null = null;
   private mainWindow: BrowserWindow | null = null;
   private isInitialized = false;
 
@@ -36,48 +50,51 @@ export class ResearchService {
   }
 
   /**
-   * Initialize the worker manager with API keys
+   * Initialize the LangGraph workflow manager with API keys
    */
   async initialize(config: ResearchServiceConfig): Promise<boolean> {
     try {
-      if (this.workerManager) {
-        await this.workerManager.shutdown();
+      if (this.workflowManager) {
+        await this.workflowManager.shutdown();
       }
 
-      const workerConfig: WorkerManagerConfig = {
-        workerCount: config.workerCount || 3,
+      const workflowConfig: LangGraphWorkflowConfig = {
         tavilyApiKey: config.tavilyApiKey,
         openaiApiKey: config.openaiApiKey,
         maxRetries: config.maxRetries || 3,
         jobTimeout: config.jobTimeout || 300000 // 5 minutes
       };
 
-      this.workerManager = new WorkerManager(workerConfig);
+      this.workflowManager = new LangGraphWorkflowManager(workflowConfig);
       this.isInitialized = true;
       
-      console.log('Research service initialized successfully');
+      console.log('LangGraph research service initialized successfully');
       return true;
     } catch (error) {
-      console.error('Failed to initialize research service:', error);
+      console.error('Failed to initialize LangGraph research service:', error);
       this.isInitialized = false;
       return false;
     }
   }
 
   /**
-   * Execute a research job
+   * Execute a research workflow using LangGraph
    */
   async executeJob(job: WorkerJob): Promise<boolean> {
-    if (!this.workerManager || !this.isInitialized) {
-      console.error('Research service not initialized');
+    if (!this.workflowManager || !this.isInitialized) {
+      console.error('LangGraph research service not initialized');
       return false;
     }
 
     try {
-      await this.workerManager.executeJob(
-        job,
+      // Convert job to purpose for LangGraph workflow
+      const purpose = job.queries[0] || job.purpose;
+      
+      await this.workflowManager.executeWorkflow(
+        purpose,
+        job.id,
         // Progress callback
-        (progress) => {
+        (progress: any) => {
           this.sendToRenderer('research-progress', {
             jobId: job.id,
             type: job.type,
@@ -87,7 +104,7 @@ export class ResearchService {
           });
         },
         // Complete callback
-        (result) => {
+        (result: WorkerResult) => {
           this.sendToRenderer('research-complete', {
             jobId: job.id,
             type: job.type,
@@ -95,7 +112,7 @@ export class ResearchService {
           });
         },
         // Error callback
-        (error, retryable) => {
+        (error: string, retryable: boolean) => {
           this.sendToRenderer('research-error', {
             jobId: job.id,
             type: job.type,
@@ -107,25 +124,25 @@ export class ResearchService {
 
       return true;
     } catch (error) {
-      console.error(`Failed to execute job ${job.id}:`, error);
+      console.error(`Failed to execute LangGraph workflow ${job.id}:`, error);
       return false;
     }
   }
 
   /**
-   * Execute multiple jobs in parallel
+   * Execute multiple workflows in parallel using LangGraph
    */
   async executeJobsParallel(jobs: WorkerJob[]): Promise<boolean> {
-    if (!this.workerManager || !this.isInitialized) {
-      console.error('Research service not initialized');
+    if (!this.workflowManager || !this.isInitialized) {
+      console.error('LangGraph research service not initialized');
       return false;
     }
 
     try {
-      await this.workerManager.executeJobsParallel(
+      await this.workflowManager.executeJobsParallel(
         jobs,
         // Progress callback
-        (jobId, progress) => {
+        (jobId: string, progress: any) => {
           const job = jobs.find(j => j.id === jobId);
           this.sendToRenderer('research-progress', {
             jobId,
@@ -136,7 +153,7 @@ export class ResearchService {
           });
         },
         // Complete callback
-        (jobId, result) => {
+        (jobId: string, result: WorkerResult) => {
           const job = jobs.find(j => j.id === jobId);
           this.sendToRenderer('research-complete', {
             jobId,
@@ -145,7 +162,7 @@ export class ResearchService {
           });
         },
         // Error callback
-        (jobId, error, retryable) => {
+        (jobId: string, error: string, retryable: boolean) => {
           const job = jobs.find(j => j.id === jobId);
           this.sendToRenderer('research-error', {
             jobId,
@@ -158,50 +175,48 @@ export class ResearchService {
 
       return true;
     } catch (error) {
-      console.error('Failed to execute parallel jobs:', error);
+      console.error('Failed to execute parallel LangGraph workflows:', error);
       return false;
     }
   }
 
   /**
-   * Get current worker status
+   * Get current workflow status
    */
-  getWorkerStatus() {
-    if (!this.workerManager) {
+  getWorkflowStatus() {
+    if (!this.workflowManager) {
       return {
         initialized: false,
-        workers: [],
-        activeJobs: [],
-        queueLength: 0
+        workflows: [],
+        activeWorkflows: []
       };
     }
 
     return {
       initialized: this.isInitialized,
-      workers: this.workerManager.getWorkerStatuses(),
-      activeJobs: this.workerManager.getActiveJobs(),
-      queueLength: this.workerManager.getQueueLength()
+      workflows: [], // this.workflowManager.getWorkflowStatuses(), // Commented out due to implementation issues
+      activeWorkflows: this.workflowManager.getActiveWorkflows()
     };
   }
 
   /**
-   * Cancel a specific job
+   * Cancel a specific workflow
    */
   cancelJob(jobId: string): boolean {
-    if (!this.workerManager) return false;
-    return this.workerManager.cancelJob(jobId);
+    if (!this.workflowManager) return false;
+    return this.workflowManager.cancelWorkflow(jobId);
   }
 
   /**
-   * Shutdown the research service
+   * Shutdown the LangGraph research service
    */
   async shutdown(): Promise<void> {
-    if (this.workerManager) {
-      await this.workerManager.shutdown();
-      this.workerManager = null;
+    if (this.workflowManager) {
+      await this.workflowManager.shutdown();
+      this.workflowManager = null;
     }
     this.isInitialized = false;
-    console.log('Research service shutdown complete');
+    console.log('LangGraph research service shutdown complete');
   }
 
   /**
@@ -232,9 +247,9 @@ export class ResearchService {
       return await this.executeJobsParallel(jobs);
     });
 
-    // Get worker status
+    // Get workflow status
     ipcMain.handle('research-get-status', async (event) => {
-      return this.getWorkerStatus();
+      return this.getWorkflowStatus();
     });
 
     // Cancel job

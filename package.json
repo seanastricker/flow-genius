@@ -18,6 +18,9 @@
     "test": "jest"
   },
   "dependencies": {
+    "@langchain/core": "^0.3.61",
+    "@langchain/langgraph": "^0.2.74",
+    "@langchain/openai": "^0.3.17",
     "@types/fs-extra": "^11.0.4",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.10.0",

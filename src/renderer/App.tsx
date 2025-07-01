@@ -124,25 +124,54 @@ function HomePage() {
  * Research page component
  */
 function ResearchPage() {
-  const { currentDocument } = useDocumentStore();
+  const { currentDocument, createNewDocument } = useDocumentStore();
+  const navigate = useNavigate();
+
+  const handleGoHome = () => {
+    navigate('/');
+  };
+
+  const handleCreateNew = () => {
+    createNewDocument();
+    navigate('/purpose');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Research Phase</h1>
-              <p className="text-slate-600 mt-1">
-                Automated research for your BrainLift document
-              </p>
-            </div>
-            {currentDocument && (
-              <div className="text-right">
-                <div className="text-sm text-slate-500">Document</div>
-                <div className="font-medium text-slate-900">{currentDocument.title}</div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleGoHome}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Home
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">Research Phase</h1>
+                <p className="text-slate-600 mt-1">
+                  Automated research for your BrainLift document
+                </p>
               </div>
-            )}
+            </div>
+            <div className="flex items-center gap-4">
+              {currentDocument && (
+                <div className="text-right">
+                  <div className="text-sm text-slate-500">Document</div>
+                  <div className="font-medium text-slate-900">{currentDocument.title}</div>
+                </div>
+              )}
+              <button
+                onClick={handleCreateNew}
+                className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium"
+              >
+                New BrainLift
+              </button>
+            </div>
           </div>
         </header>
 
@@ -158,11 +187,54 @@ function ResearchPage() {
  * Review page placeholder (will be implemented in Feature 5)
  */
 function ReviewPage() {
+  const { createNewDocument } = useDocumentStore();
+  const navigate = useNavigate();
+
+  const handleGoHome = () => {
+    navigate('/');
+  };
+
+  const handleCreateNew = () => {
+    createNewDocument();
+    navigate('/purpose');
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Review Phase</h1>
-        <p className="text-slate-600">This feature will be implemented in the next phase.</p>
+    <div className="min-h-screen bg-slate-50">
+      <div className="container mx-auto px-4 py-8">
+        <header className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleGoHome}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Home
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">Review Phase</h1>
+                <p className="text-slate-600">This feature will be implemented in the next phase.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleCreateNew}
+                className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium"
+              >
+                New BrainLift
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-slate-600">Review and editing functionality will be available here soon.</p>
+          </div>
+        </main>
       </div>
     </div>
   );

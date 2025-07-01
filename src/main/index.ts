@@ -1,3 +1,17 @@
+// Polyfill for crypto.getRandomValues() to fix LangGraph uuid dependency issues
+// This must be done before any LangGraph imports
+import { randomBytes } from 'crypto';
+
+if (typeof global !== 'undefined' && !global.crypto) {
+  global.crypto = {
+    getRandomValues: (array: Uint8Array) => {
+      const bytes = randomBytes(array.length);
+      array.set(bytes);
+      return array;
+    }
+  } as any;
+}
+
 import { app, BrowserWindow } from 'electron';
 import { join } from 'path';
 import { researchService } from './research-service';
