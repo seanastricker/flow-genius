@@ -600,60 +600,54 @@ export const useDocumentStore = create<DocumentStore>()(
         }
 
         try {
-          // Import research store dynamically to avoid circular imports
-          const { useResearchStore } = await import('./research-store');
-          const researchStore = useResearchStore.getState();
-
-          // Initialize worker manager if not ready
-          if (!researchStore.isWorkerManagerReady) {
-            // Get API keys from environment or user config
-            const apiKeys = {
-              tavily: import.meta.env.VITE_TAVILY_API_KEY || '',
-              openai: import.meta.env.VITE_OPENAI_API_KEY || ''
-            };
-
-            // Initialize with whatever keys are available (empty keys will trigger stub worker)
-            console.log('Initializing research engine with API keys:', {
-              tavily: apiKeys.tavily ? '[SET]' : '[EMPTY]',
-              openai: apiKeys.openai ? '[SET]' : '[EMPTY]'
-            });
-
-            const initialized = await researchStore.initializeWorkerManager(apiKeys);
-            if (!initialized) {
-              set({ error: 'Failed to initialize research engine' });
-              return false;
-            }
-          }
+          // Import research orchestrator
+          const { researchOrchestrator } = await import('../services/research-orchestrator');
 
           // Update document status to research-active
           get().setDocumentStatus('research-active');
 
           // Initialize research progress
           const initialProgress: ResearchProgress = {
-            experts: { status: 'pending', progress: 0 },
-            spikyPOVs: { status: 'pending', progress: 0 },
-            knowledgeTree: { status: 'pending', progress: 0 },
+            experts: { status: 'pending', progress: 0, startTime: new Date() },
+            spikyPOVs: { status: 'pending', progress: 0, startTime: new Date() },
+            knowledgeTree: { status: 'pending', progress: 0, startTime: new Date() },
             overallProgress: 0
           };
 
           get().updateResearchProgress(initialProgress);
 
-          // Start research session
-          const success = await researchStore.startResearchSession(currentDocument.id, currentDocument.purpose);
+          // Create purpose text for research
+          const purposeText = `
+            Core Problem: ${currentDocument.purpose.coreProblem.challenge} - ${currentDocument.purpose.coreProblem.importance}
+            Target Outcome: ${currentDocument.purpose.targetOutcome.successDefinition}
+            Scope: ${currentDocument.purpose.boundaries.included}
+          `.trim();
+
+          console.log('🔬 Starting real research workflow with purpose:', purposeText);
+
+          // Start research using real API integrations
+          await researchOrchestrator.startResearch(currentDocument.id, purposeText);
           
-          if (success) {
-            // Auto-sync to Firebase
-            await get().syncToFirebase();
-            return true;
-          } else {
-            set({ error: 'Failed to start research session' });
-            get().setDocumentStatus('purpose-definition');
-            return false;
-          }
+          // Auto-sync to Firebase
+          await get().syncToFirebase();
+          return true;
+
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error starting research';
+          console.error('❌ Research workflow failed:', errorMessage);
+          
           set({ error: errorMessage });
           get().setDocumentStatus('purpose-definition');
+          
+          // Reset research progress on error
+          const errorProgress: ResearchProgress = {
+            experts: { status: 'error', progress: 0, errorMessage },
+            spikyPOVs: { status: 'error', progress: 0, errorMessage },
+            knowledgeTree: { status: 'error', progress: 0, errorMessage },
+            overallProgress: 0
+          };
+          get().updateResearchProgress(errorProgress);
+          
           return false;
         }
       },

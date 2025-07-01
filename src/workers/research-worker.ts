@@ -212,258 +212,350 @@ class ResearchWorker {
       case 'knowledgeTree':
         return await this.generateKnowledgeTreeContent(sources, job.purpose);
       default:
-        throw new Error(`Unknown job type: ${job.type}`);
+        throw new Error(`Unknown content type: ${job.type}`);
     }
   }
 
   /**
-   * Generate expert section content
+   * Generate expert content from sources
    */
   private async generateExpertContent(sources: ResearchSource[], purpose: string): Promise<string> {
-    const prompt = `
-Create an Expert section for a BrainLift document using these sources.
+    if (sources.length === 0) {
+      return `No expert sources found for the purpose: ${purpose}. Please try broadening your search criteria or checking your internet connection.`;
+    }
 
-Purpose: ${purpose}
-
-Sources: ${sources.map(s => `
-- ${s.title} (${s.url})
-  Author: ${s.author || 'Unknown'}
-  Summary: ${s.summary}
-  Key Quotes: ${s.keyQuotes.join('; ')}
-`).join('\n')}
-
-For each expert identified, provide:
-1. Name and credentials
-2. Their specific expertise area
-3. Why they're relevant to this purpose
-4. Key insights or notable work
-5. How to contact or find their work
-
-Focus on credible experts with relevant experience and documented expertise.
-Format as structured sections for each expert.
-`;
-
-    return await this.openaiClient.generateContent(prompt, {
-      temperature: 0.3,
-      maxTokens: 1500
-    });
+    try {
+      return await this.openaiClient.generateExpertContent(sources, purpose);
+    } catch (error) {
+      console.error('Failed to generate expert content:', error);
+      return this.generateFallbackExpertContent(sources, purpose);
+    }
   }
 
   /**
-   * Generate SpikyPOV section content
+   * Generate SpikyPOV content from sources
    */
   private async generateSpikyPOVContent(sources: ResearchSource[], purpose: string): Promise<string> {
-    const prompt = `
-Create a SpikyPOV section for a BrainLift document using these sources.
+    if (sources.length === 0) {
+      return `No contrarian sources found for the purpose: ${purpose}. Consider exploring alternative viewpoints or research from different domains.`;
+    }
 
-Purpose: ${purpose}
-
-Sources: ${sources.map(s => `
-- ${s.title} (${s.url})
-  Summary: ${s.summary}
-  Key Quotes: ${s.keyQuotes.join('; ')}
-`).join('\n')}
-
-Format:
-1. Consensus View: [What most people believe about this topic]
-2. Contrarian Insight: [The counter-consensus view with evidence]
-3. Supporting Evidence: [Specific data, studies, examples from sources]
-4. Practical Implications: [What this means for the purpose]
-
-Focus on evidence-backed contrarian viewpoints, not mere opinions.
-Use multiple perspectives and cite specific evidence from the sources.
-`;
-
-    return await this.openaiClient.generateContent(prompt, {
-      temperature: 0.4,
-      maxTokens: 1500
-    });
+    try {
+      return await this.openaiClient.generateSpikyPOVContent(sources, purpose);
+    } catch (error) {
+      console.error('Failed to generate SpikyPOV content:', error);
+      return this.generateFallbackSpikyPOVContent(sources, purpose);
+    }
   }
 
   /**
-   * Generate Knowledge Tree section content
+   * Generate Knowledge Tree content from sources
    */
   private async generateKnowledgeTreeContent(sources: ResearchSource[], purpose: string): Promise<string> {
-    const prompt = `
-Create a Knowledge Tree section for a BrainLift document using these sources.
+    if (sources.length === 0) {
+      return `No knowledge tree sources found for the purpose: ${purpose}. Please ensure your purpose statement contains sufficient technical detail.`;
+    }
 
-Purpose: ${purpose}
-
-Sources: ${sources.map(s => `
-- ${s.title} (${s.url})
-  Summary: ${s.summary}
-  Key Quotes: ${s.keyQuotes.join('; ')}
-`).join('\n')}
-
-Analyze and organize:
-1. Current State: What systems, tools, and approaches currently exist
-2. Strengths and Weaknesses: What works well and what doesn't
-3. Adjacent Fields: Related areas and disciplines
-4. Background Concepts: Foundational knowledge needed
-5. Dependencies: What this area depends on or influences
-
-Structure as a comprehensive knowledge map with clear connections and relationships.
-`;
-
-    return await this.openaiClient.generateContent(prompt, {
-      temperature: 0.3,
-      maxTokens: 1500
-    });
+    try {
+      return await this.openaiClient.generateKnowledgeTreeContent(sources, purpose);
+    } catch (error) {
+      console.error('Failed to generate knowledge tree content:', error);
+      return this.generateFallbackKnowledgeTreeContent(sources, purpose);
+    }
   }
 
   /**
-   * Utility methods
+   * Fallback expert content when OpenAI fails
    */
-  private extractDomain(purpose: string): string {
-    // Simple domain extraction from purpose - could be improved with NLP
-    const domains = ['technology', 'business', 'science', 'healthcare', 'education'];
-    const lowerPurpose = purpose.toLowerCase();
+  private generateFallbackExpertContent(sources: ResearchSource[], purpose: string): string {
+    const expertSources = sources.filter(s => s.sourceType === 'academic' || s.credibilityScore > 7);
     
-    for (const domain of domains) {
-      if (lowerPurpose.includes(domain)) {
-        return domain;
-      }
-    }
-    
-    return 'general';
+    return `## Expert Analysis
+
+Based on ${sources.length} research sources related to: ${purpose}
+
+### Key Experts and Insights:
+
+${expertSources.map((source, index) => `
+**${index + 1}. ${source.title}**
+- Source: ${source.url}
+- Credibility Score: ${source.credibilityScore}/10
+- Key Insights: ${source.keyQuotes.slice(0, 2).join(' | ')}
+- Summary: ${source.summary}
+`).join('\n')}
+
+### Analysis Summary:
+The research reveals multiple expert perspectives on this topic. Further analysis would benefit from additional OpenAI processing to synthesize these insights into actionable recommendations.
+
+*Note: This is a fallback summary generated when AI content generation was unavailable.*`;
   }
 
+  /**
+   * Fallback SpikyPOV content when OpenAI fails
+   */
+  private generateFallbackSpikyPOVContent(sources: ResearchSource[], purpose: string): string {
+    return `## SpikyPOV Analysis
+
+Based on ${sources.length} research sources challenging conventional wisdom about: ${purpose}
+
+### Contrarian Perspectives Found:
+
+${sources.map((source, index) => `
+**${index + 1}. ${source.title}**
+- Source: ${source.url}
+- Key Contrarian Points: ${source.keyQuotes.slice(0, 2).join(' | ')}
+- Summary: ${source.summary}
+`).join('\n')}
+
+### Potential Counter-Consensus Views:
+The sources suggest several areas where conventional thinking may be challenged. Detailed analysis would require AI processing to identify specific contrarian insights and supporting evidence.
+
+*Note: This is a fallback summary generated when AI content generation was unavailable.*`;
+  }
+
+  /**
+   * Fallback Knowledge Tree content when OpenAI fails
+   */
+  private generateFallbackKnowledgeTreeContent(sources: ResearchSource[], purpose: string): string {
+    return `## Knowledge Tree Analysis
+
+Based on ${sources.length} research sources mapping the knowledge landscape for: ${purpose}
+
+### Current State Information:
+
+${sources.map((source, index) => `
+**${index + 1}. ${source.title}**
+- Source: ${source.url}
+- Relevance Score: ${source.relevanceScore}/10
+- Key Information: ${source.keyQuotes.slice(0, 2).join(' | ')}
+- Summary: ${source.summary}
+`).join('\n')}
+
+### Knowledge Areas Identified:
+The research provides foundational information about existing systems, tools, and methodologies. Comprehensive analysis would benefit from AI processing to map dependencies and identify knowledge gaps.
+
+*Note: This is a fallback summary generated when AI content generation was unavailable.*`;
+  }
+
+  /**
+   * Extract domain from purpose statement
+   */
+  private extractDomain(purpose: string): string {
+    // Simple domain extraction - could be enhanced with NLP
+    const technicalTerms = purpose.toLowerCase()
+      .split(' ')
+      .filter(word => word.length > 4 && !this.isCommonWord(word))
+      .slice(0, 3);
+    
+    return technicalTerms.join(' ') || 'general';
+  }
+
+  /**
+   * Check if word is a common stop word
+   */
+  private isCommonWord(word: string): boolean {
+    const stopWords = ['the', 'and', 'for', 'with', 'that', 'this', 'have', 'will', 'from', 'they', 'been', 'their', 'said', 'each', 'which', 'what', 'were', 'more', 'very', 'know', 'just', 'first', 'also', 'after', 'back', 'other', 'many', 'than', 'then', 'them', 'these', 'some', 'would', 'make', 'like', 'into', 'time', 'has', 'two', 'way', 'could', 'been', 'call', 'who', 'its', 'now', 'find', 'long', 'down', 'day', 'did', 'get', 'come', 'made', 'may', 'part'];
+    return stopWords.includes(word.toLowerCase());
+  }
+
+  /**
+   * Determine source type from URL
+   */
   private determineSourceType(url: string): ResearchSource['sourceType'] {
-    if (url.includes('.edu') || url.includes('.ac.') || url.includes('arxiv') || url.includes('ieee')) {
+    if (url.includes('.edu') || url.includes('.ac.') || url.includes('researchgate') || url.includes('scholar.google') || url.includes('arxiv') || url.includes('pubmed')) {
       return 'academic';
     }
-    if (url.includes('blog') || url.includes('medium') || url.includes('substack')) {
-      return 'blog';
-    }
-    if (url.includes('news') || url.includes('cnn') || url.includes('bbc') || url.includes('reuters')) {
-      return 'news';
-    }
-    if (url.includes('mckinsey') || url.includes('bcg') || url.includes('deloitte')) {
+    
+    if (url.includes('mckinsey') || url.includes('bcg') || url.includes('deloitte') || url.includes('pwc') || url.includes('hbr.org')) {
       return 'industry';
     }
+    
+    if (url.includes('news') || url.includes('reuters') || url.includes('bloomberg') || url.includes('wsj') || url.includes('nytimes')) {
+      return 'news';
+    }
+    
+    if (url.includes('blog') || url.includes('medium.com') || url.includes('substack.com')) {
+      return 'blog';
+    }
+    
     return 'other';
   }
 
+  /**
+   * Calculate credibility score based on source characteristics
+   */
   private calculateCredibilityScore(result: TavilyResult): number {
     let score = 5; // Base score
-
+    
     // Boost for academic sources
-    if (result.url.includes('.edu') || result.url.includes('arxiv')) score += 2;
+    if (this.extractDomainFromUrl(result.url).includes('.edu') || result.url.includes('researchgate') || result.url.includes('scholar.google')) {
+      score += 3;
+    }
+    
+    // Boost for professional sources
+    if (result.url.includes('mckinsey') || result.url.includes('bcg') || result.url.includes('hbr.org')) {
+      score += 2;
+    }
     
     // Boost for recent content
-    if (result.published_date && this.isRecent(result.published_date)) score += 1;
+    if (this.isRecent(result.published_date || '')) {
+      score += 1;
+    }
     
-    // Boost for detailed content
-    if (result.content.length > 1000) score += 1;
+    // Boost for longer, more detailed content
+    if (result.content && result.content.length > 1000) {
+      score += 1;
+    }
     
-    // Boost for high Tavily score
-    if (result.score > 0.8) score += 1;
-
+    // Boost based on Tavily's own score
+    if (result.score > 0.8) {
+      score += 2;
+    } else if (result.score > 0.6) {
+      score += 1;
+    }
+    
     return Math.min(10, Math.max(1, score));
   }
 
+  /**
+   * Calculate relevance score based on content alignment with purpose
+   */
   private calculateRelevanceScore(result: TavilyResult, purpose: string): number {
-    // Simple keyword matching - could be improved with semantic similarity
-    const purposeWords = purpose.toLowerCase().split(' ');
-    const contentWords = result.content.toLowerCase().split(' ');
+    const purposeKeywords = purpose.toLowerCase().split(' ').filter(word => word.length > 3);
+    const contentLower = result.content.toLowerCase();
+    const titleLower = result.title.toLowerCase();
     
-    const matches = purposeWords.filter(word => 
-      word.length > 3 && contentWords.includes(word)
-    ).length;
+    let score = 5; // Base score
     
-    const relevanceRatio = matches / purposeWords.length;
-    return Math.min(10, Math.max(1, Math.round(relevanceRatio * 10)));
+    // Check keyword overlap
+    const titleMatches = purposeKeywords.filter(keyword => titleLower.includes(keyword)).length;
+    const contentMatches = purposeKeywords.filter(keyword => contentLower.includes(keyword)).length;
+    
+    score += (titleMatches * 2) + (contentMatches * 0.5);
+    
+    // Use Tavily's relevance score
+    score += (result.score * 3);
+    
+    return Math.min(10, Math.max(1, score));
   }
 
+  /**
+   * Extract key quotes from content
+   */
   private extractKeyQuotes(content: string): string[] {
-    // Simple quote extraction - look for sentences with quotation marks or strong statements
-    const sentences = content.split(/[.!?]+/);
-    const quotes: string[] = [];
-
-    for (const sentence of sentences) {
-      const trimmed = sentence.trim();
-      if (trimmed.length > 20 && (
-        trimmed.includes('"') || 
-        trimmed.includes("'") ||
-        trimmed.toLowerCase().includes('found that') ||
-        trimmed.toLowerCase().includes('research shows') ||
-        trimmed.toLowerCase().includes('study reveals')
-      )) {
-        quotes.push(trimmed);
-      }
+    // Simple quote extraction - look for sentences with strong indicators
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    const keyIndicators = ['research shows', 'study found', 'according to', 'data reveals', 'evidence suggests', 'experts believe', 'findings indicate'];
+    
+    const keyQuotes = sentences.filter(sentence => {
+      const lowerSentence = sentence.toLowerCase();
+      return keyIndicators.some(indicator => lowerSentence.includes(indicator));
+    }).slice(0, 3);
+    
+    // If no indicator-based quotes, take first few substantial sentences
+    if (keyQuotes.length === 0) {
+      return sentences.filter(s => s.length > 50 && s.length < 200).slice(0, 3).map(s => s.trim());
     }
-
-    return quotes.slice(0, 3); // Top 3 quotes
+    
+    return keyQuotes.map(quote => quote.trim());
   }
 
+  /**
+   * Generate source summary using OpenAI
+   */
   private async generateSourceSummary(result: TavilyResult, purpose: string): Promise<string> {
-    const prompt = `
-Summarize this source in 2-3 sentences, focusing on how it relates to: ${purpose}
-
-Source: ${result.title}
-Content: ${result.content.substring(0, 1000)}...
-
-Provide a concise, relevant summary.
-`;
-
-    return await this.openaiClient.generateContent(prompt, {
-      temperature: 0.2,
-      maxTokens: 200
-    });
+    try {
+      return await this.openaiClient.generateSourceSummary(result, purpose);
+    } catch (error) {
+      console.error('Failed to generate source summary:', error);
+      // Fallback to simple summary
+      return result.content.slice(0, 200) + '...';
+    }
   }
 
+  /**
+   * Create analysis summary from all sources
+   */
   private createAnalysisSummary(sources: ResearchSource[]): string {
-    const avgCredibility = sources.reduce((sum, s) => sum + s.credibilityScore, 0) / sources.length;
-    const avgRelevance = sources.reduce((sum, s) => sum + s.relevanceScore, 0) / sources.length;
-    const sourceTypes = [...new Set(sources.map(s => s.sourceType))];
-
-    return `Analysis Summary:
-- ${sources.length} sources analyzed
-- Average credibility: ${avgCredibility.toFixed(1)}/10
-- Average relevance: ${avgRelevance.toFixed(1)}/10
-- Source types: ${sourceTypes.join(', ')}
-- Key domains covered: ${sources.map(s => this.extractDomainFromUrl(s.url)).filter(Boolean).slice(0, 3).join(', ')}`;
+    const totalSources = sources.length;
+    const avgCredibility = sources.reduce((sum, s) => sum + s.credibilityScore, 0) / totalSources;
+    const avgRelevance = sources.reduce((sum, s) => sum + s.relevanceScore, 0) / totalSources;
+    
+    const sourceTypes = sources.reduce((acc, source) => {
+      acc[source.sourceType] = (acc[source.sourceType] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return `Analysis based on ${totalSources} sources with average credibility score of ${avgCredibility.toFixed(1)}/10 and relevance score of ${avgRelevance.toFixed(1)}/10. Source distribution: ${Object.entries(sourceTypes).map(([type, count]) => `${type}: ${count}`).join(', ')}.`;
   }
 
+  /**
+   * Calculate overall credibility score
+   */
   private calculateOverallCredibility(sources: ResearchSource[]): number {
-    return sources.reduce((sum, s) => sum + s.credibilityScore, 0) / sources.length;
+    if (sources.length === 0) return 0;
+    return sources.reduce((sum, source) => sum + source.credibilityScore, 0) / sources.length;
   }
 
+  /**
+   * Extract domain from URL
+   */
   private extractDomainFromUrl(url: string): string {
     try {
-      return new URL(url).hostname;
+      const domain = new URL(url).hostname;
+      return domain;
     } catch {
-      return '';
+      return url;
     }
   }
 
+  /**
+   * Check if publication date is recent (within 2 years)
+   */
   private isRecent(publishDate: string): boolean {
-    const date = new Date(publishDate);
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    return date >= oneYearAgo;
+    if (!publishDate) return false;
+    
+    try {
+      const pubDate = new Date(publishDate);
+      const twoYearsAgo = new Date();
+      twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+      return pubDate > twoYearsAgo;
+    } catch {
+      return false;
+    }
   }
 
+  /**
+   * Generate unique source ID
+   */
   private generateSourceId(): string {
     return `source_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
+  /**
+   * Check if error is retryable
+   */
   private isRetryableError(error: Error): boolean {
-    const retryableErrors = ['network', 'timeout', 'rate limit', '429', '500', '502', '503'];
+    const retryableErrors = ['network', 'timeout', 'rate limit', '429', '503', '502'];
     const errorMessage = error.message.toLowerCase();
-    return retryableErrors.some(keyword => errorMessage.includes(keyword));
-  }
-
-  private async stopJob(cleanup: boolean): Promise<void> {
-    if (cleanup) {
-      // Perform any necessary cleanup
-      console.log(`Worker ${this.workerId} stopping with cleanup`);
-    }
-    process.exit(0);
+    return retryableErrors.some(retryable => errorMessage.includes(retryable));
   }
 
   /**
-   * Communication methods
+   * Stop current job and cleanup
+   */
+  private async stopJob(cleanup: boolean): Promise<void> {
+    if (cleanup) {
+      // Reset API clients if needed
+      this.tavilyClient.resetRequestCount();
+      this.openaiClient.resetUsageStats();
+    }
+    
+    this.sendProgress(0, 'Job stopped');
+  }
+
+  /**
+   * Send progress update to main thread
    */
   private sendProgress(progress: number, status: string): void {
     parentPort?.postMessage({
@@ -472,6 +564,19 @@ Provide a concise, relevant summary.
     });
   }
 
+  /**
+   * Send partial results to main thread
+   */
+  private sendPartialResult(sources: ResearchSource[]): void {
+    parentPort?.postMessage({
+      type: 'RESULT_PARTIAL',
+      payload: { sources }
+    });
+  }
+
+  /**
+   * Send final result to main thread
+   */
   private sendResult(result: WorkerResult): void {
     parentPort?.postMessage({
       type: 'JOB_COMPLETE',
@@ -479,12 +584,15 @@ Provide a concise, relevant summary.
     });
   }
 
+  /**
+   * Send error to main thread
+   */
   private sendError(error: Error, retryable: boolean): void {
     parentPort?.postMessage({
       type: 'JOB_ERROR',
       payload: { 
-        error: error.message,
-        retryable
+        error: error.message, 
+        retryable 
       }
     });
   }

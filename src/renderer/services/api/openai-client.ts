@@ -213,24 +213,198 @@ Current Purpose state: ${currentPurpose ? JSON.stringify(currentPurpose, null, 2
         model: 'gpt-4-turbo-preview',
         messages: [{ role: 'user', content: prompt }],
         temperature: options.temperature ?? 0.3,
-        max_tokens: options.maxTokens ?? 1000,
+        max_tokens: options.maxTokens ?? 1500,
         response_format: options.jsonMode ? { type: 'json_object' } : undefined
       });
 
       this.requestCount++;
       return response.choices[0]?.message?.content || '';
     } catch (error) {
-      if (error instanceof OpenAI.APIError) {
-        if (error.status === 429) {
-          await this.handleRateLimit(error);
-          return this.generateContent(prompt, options);
-        }
-        
-        throw new Error(`OpenAI API Error: ${error.message}`);
+      if (error instanceof OpenAI.APIError && error.status === 429) {
+        await this.handleRateLimit(error);
+        return this.generateContent(prompt, options);
       }
-      
       throw error;
     }
+  }
+
+  /**
+   * Generate expert analysis content from sources
+   */
+  async generateExpertContent(sources: any[], purpose: string): Promise<string> {
+    if (!this.isReady()) {
+      throw new Error('OpenAI client not initialized. Please set API key.');
+    }
+
+    const prompt = `Create expert analysis content for a BrainLift document based on these research sources.
+
+Purpose: ${purpose}
+
+Sources:
+${sources.map((source, index) => `
+${index + 1}. ${source.title}
+   URL: ${source.url}
+   Author: ${source.author || 'Unknown'}
+   Summary: ${source.summary}
+   Key Quotes: ${source.keyQuotes.join(' | ')}
+   Credibility Score: ${source.credibilityScore}/10
+`).join('\n')}
+
+Please generate a comprehensive expert analysis that:
+1. Synthesizes insights from these sources
+2. Identifies the most credible experts and their key contributions
+3. Explains how their expertise relates to the specific purpose
+4. Highlights any consensus or disagreements among experts
+5. Provides actionable insights for the purpose
+
+Format the response as well-structured content with clear sections and expert attributions.`;
+
+    return this.generateContent(prompt, { temperature: 0.3, maxTokens: 2000 });
+  }
+
+  /**
+   * Generate SpikyPOV content from sources
+   */
+  async generateSpikyPOVContent(sources: any[], purpose: string): Promise<string> {
+    if (!this.isReady()) {
+      throw new Error('OpenAI client not initialized. Please set API key.');
+    }
+
+    const prompt = `Create SpikyPOV analysis for a BrainLift document based on these research sources.
+
+Purpose: ${purpose}
+
+Sources:
+${sources.map((source, index) => `
+${index + 1}. ${source.title}
+   URL: ${source.url}
+   Summary: ${source.summary}
+   Key Quotes: ${source.keyQuotes.join(' | ')}
+`).join('\n')}
+
+Please create a SpikyPOV analysis that includes:
+
+1. **Consensus View**: What most people in this field believe or assume to be true
+2. **Contrarian Insight**: A well-researched counter-perspective that challenges conventional wisdom
+3. **Supporting Evidence**: Specific data, studies, or examples from the sources that support the contrarian view
+4. **Practical Implications**: What this means for the specific purpose and how it could change the approach
+
+Focus on evidence-backed contrarian viewpoints, not mere opinions. The SpikyPOV should be genuinely challenging but supported by credible sources.
+
+Format as clear sections with proper citations.`;
+
+    return this.generateContent(prompt, { temperature: 0.4, maxTokens: 2000 });
+  }
+
+  /**
+   * Generate Knowledge Tree content from sources
+   */
+  async generateKnowledgeTreeContent(sources: any[], purpose: string): Promise<string> {
+    if (!this.isReady()) {
+      throw new Error('OpenAI client not initialized. Please set API key.');
+    }
+
+    const prompt = `Create Knowledge Tree analysis for a BrainLift Document based on these research sources.
+
+Purpose: ${purpose}
+
+Sources:
+${sources.map((source, index) => `
+${index + 1}. ${source.title}
+   URL: ${source.url}
+   Summary: ${source.summary}
+   Key Quotes: ${source.keyQuotes.join(' | ')}
+`).join('\n')}
+
+Please create a comprehensive Knowledge Tree analysis that includes:
+
+1. **Current State Analysis**:
+   - Existing systems and tools in this domain
+   - Current approaches and methodologies
+   - Key metrics and success indicators
+   - Strengths and limitations of current solutions
+
+2. **Adjacent Fields & Dependencies**:
+   - Related domains that intersect with this purpose
+   - Background knowledge and foundational concepts
+   - Dependencies and prerequisites
+   - Cross-domain connections and opportunities
+
+3. **Knowledge Gaps & Opportunities**:
+   - Areas where knowledge is incomplete or outdated
+   - Emerging trends and future directions
+   - Potential innovations and breakthroughs
+   - Integration opportunities across fields
+
+Format as well-structured content with clear sections and source citations.`;
+
+    return this.generateContent(prompt, { temperature: 0.3, maxTokens: 2000 });
+  }
+
+  /**
+   * Extract expert information from a source
+   */
+  async extractExpertInfo(source: any, purpose: string): Promise<any> {
+    if (!this.isReady()) {
+      throw new Error('OpenAI client not initialized. Please set API key.');
+    }
+
+    const prompt = `Analyze this source to extract expert information for a BrainLift document.
+
+Purpose Context: ${purpose}
+
+Source Content: ${source.content}
+Source URL: ${source.url}
+Source Title: ${source.title}
+
+Extract and return a JSON object with:
+{
+  "expertName": "Name of the expert if identifiable",
+  "credentials": "Academic or professional credentials",
+  "expertise": "Specific area of expertise",
+  "relevance": "Why this expert is relevant to the purpose (1-2 sentences)",
+  "keyInsights": ["List of 2-3 key insights from this expert"],
+  "credibilityIndicators": ["Factors that indicate this expert's credibility"]
+}
+
+If no clear expert is identified, return null for expertName but still provide insights about the content's expertise value.`;
+
+    try {
+      const response = await this.generateContent(prompt, { 
+        temperature: 0.2, 
+        maxTokens: 800,
+        jsonMode: true 
+      });
+      return JSON.parse(response);
+    } catch (error) {
+      console.error('Failed to extract expert info:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Generate source summary
+   */
+  async generateSourceSummary(source: any, purpose: string): Promise<string> {
+    if (!this.isReady()) {
+      throw new Error('OpenAI client not initialized. Please set API key.');
+    }
+
+    const prompt = `Summarize this source in the context of the given purpose.
+
+Purpose: ${purpose}
+
+Source: ${source.title}
+Content: ${source.content}
+
+Create a concise 2-3 sentence summary that:
+1. Explains the main point of the source
+2. Highlights its relevance to the purpose
+3. Notes any particularly valuable insights or data
+
+Keep it clear and focused on what matters for the purpose.`;
+
+    return this.generateContent(prompt, { temperature: 0.3, maxTokens: 300 });
   }
 
   /**

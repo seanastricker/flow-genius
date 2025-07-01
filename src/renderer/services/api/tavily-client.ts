@@ -204,48 +204,59 @@ export class TavilyClient {
       },
       body: JSON.stringify({
         api_key: this.apiKey,
-        ...params
+        query: params.query,
+        search_depth: params.search_depth || 'basic',
+        include_domains: params.include_domains || [],
+        exclude_domains: params.exclude_domains || [],
+        max_results: params.max_results || 5,
+        include_raw_content: params.include_raw_content || false,
+        include_images: params.include_images || false
       })
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Tavily API error: ${response.status} - ${errorText}`);
+      throw new Error(`Tavily API error: ${response.status} ${response.statusText}`);
     }
 
+    const data = await response.json();
     this.requestCount++;
-    return await response.json();
+    
+    return data;
   }
 
   /**
-   * Get expert-focused domains for search filtering
+   * Get expert domains for filtering search results
    */
   private getExpertDomains(domain: string): string[] {
     const academicDomains = [
       'edu', 'ac.uk', 'researchgate.net', 'scholar.google.com',
-      'arxiv.org', 'ieee.org', 'acm.org', 'nature.com', 'science.org'
+      'arxiv.org', 'ieee.org', 'acm.org', 'springer.com', 'nature.com',
+      'sciencedirect.com', 'jstor.org', 'pubmed.ncbi.nlm.nih.gov'
     ];
-
+    
     const industryDomains = [
       'mckinsey.com', 'bcg.com', 'deloitte.com', 'pwc.com',
-      'hbr.org', 'mit.edu', 'stanford.edu', 'harvard.edu'
+      'hbr.org', 'mit.edu', 'stanford.edu', 'harvard.edu',
+      'wharton.upenn.edu', 'kellogg.northwestern.edu'
     ];
 
     return [...academicDomains, ...industryDomains];
   }
 
   /**
-   * Get domains known for contrarian viewpoints
+   * Get contrarian domains that might contain counter-consensus views
    */
   private getContrarianDomains(): string[] {
     return [
       'marginalrevolution.com', 'overcomingbias.com', 'lesswrong.com',
-      'slatestarcodex.com', 'astralcodexten.substack.com', 'nakedcapitalism.com'
+      'slatestarcodex.com', 'astralcodexten.substack.com', 
+      'econlog.econlib.org', 'theatlantic.com', 'newyorker.com',
+      'medium.com', 'substack.com', 'blog.', '.blog'
     ];
   }
 
   /**
-   * Rank and filter results based on quality and relevance
+   * Rank and filter results based on type and quality
    */
   private rankAndFilterResults(results: TavilyResult[], type: string): TavilyResult[] {
     return results
@@ -255,7 +266,7 @@ export class TavilyClient {
   }
 
   /**
-   * Check if result meets quality standards
+   * Check if a result meets quality standards
    */
   private isHighQuality(result: TavilyResult, type: string): boolean {
     // Basic quality checks
@@ -264,16 +275,20 @@ export class TavilyClient {
     if (result.score < 0.3) return false;
 
     // Type-specific quality checks
-    if (type === 'expert') {
-      return this.isAcademicOrProfessionalSource(result.url) ||
-             this.containsExpertIndicators(result.content);
+    switch (type) {
+      case 'expert':
+        return this.isAcademicOrProfessionalSource(result.url) || 
+               this.containsExpertIndicators(result.content);
+      
+      case 'contrarian':
+        return this.containsContrarianIndicators(result.content);
+      
+      case 'knowledge':
+        return result.content.length > 200; // More detailed content for knowledge
+      
+      default:
+        return true;
     }
-
-    if (type === 'contrarian') {
-      return this.containsContrarianIndicators(result.content);
-    }
-
-    return true;
   }
 
   /**
@@ -281,90 +296,181 @@ export class TavilyClient {
    */
   private calculateRelevanceScore(result: TavilyResult, type: string): number {
     let score = result.score || 0;
-
+    
     // Boost academic sources for experts
     if (type === 'expert' && this.isAcademicSource(result.url)) {
+      score += 0.3;
+    }
+    
+    // Boost professional sources for experts
+    if (type === 'expert' && this.isAcademicOrProfessionalSource(result.url)) {
       score += 0.2;
     }
-
+    
     // Boost recent sources
     if (this.isRecentSource(result.published_date)) {
       score += 0.1;
     }
-
-    // Boost longer, more detailed content
-    if (result.content && result.content.length > 500) {
-      score += 0.1;
+    
+    // Boost content with expert indicators
+    if (type === 'expert' && this.containsExpertIndicators(result.content)) {
+      score += 0.15;
     }
-
-    return score;
+    
+    // Boost content with contrarian indicators
+    if (type === 'contrarian' && this.containsContrarianIndicators(result.content)) {
+      score += 0.2;
+    }
+    
+    return Math.min(1.0, score); // Cap at 1.0
   }
 
   /**
-   * Check if source is academic
+   * Check if URL is from academic source
    */
   private isAcademicSource(url: string): boolean {
-    const academicDomains = ['.edu', '.ac.', 'researchgate', 'scholar.google', 'arxiv', 'ieee', 'acm'];
-    return academicDomains.some(domain => url.includes(domain));
+    const academicIndicators = ['.edu', '.ac.', 'researchgate', 'scholar.google', 
+                               'arxiv.org', 'pubmed', 'jstor', 'springer'];
+    return academicIndicators.some(indicator => url.includes(indicator));
   }
 
   /**
-   * Check if source is academic or professional
+   * Check if URL is from academic or professional source
    */
   private isAcademicOrProfessionalSource(url: string): boolean {
-    const professionalDomains = [
-      '.edu', '.ac.', 'researchgate', 'scholar.google', 'arxiv', 'ieee', 'acm',
-      'mckinsey', 'bcg', 'deloitte', 'pwc', 'hbr.org'
+    const professionalIndicators = [
+      '.edu', '.ac.', 'researchgate', 'scholar.google', 'arxiv.org',
+      'mckinsey.com', 'bcg.com', 'deloitte.com', 'pwc.com', 'hbr.org',
+      'mit.edu', 'stanford.edu', 'harvard.edu', 'ieee.org', 'acm.org'
     ];
-    return professionalDomains.some(domain => url.includes(domain));
+    return professionalIndicators.some(indicator => url.includes(indicator));
   }
 
   /**
-   * Check if source is recent (within 2 years)
+   * Check if source is recent (within last 3 years)
    */
   private isRecentSource(publishedDate?: string): boolean {
     if (!publishedDate) return false;
-    const date = new Date(publishedDate);
-    const twoYearsAgo = new Date();
-    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-    return date >= twoYearsAgo;
+    
+    try {
+      const pubDate = new Date(publishedDate);
+      const threeYearsAgo = new Date();
+      threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+      
+      return pubDate > threeYearsAgo;
+    } catch {
+      return false;
+    }
   }
 
   /**
-   * Check for expert indicators in content
+   * Check if content contains expert indicators
    */
   private containsExpertIndicators(content: string): boolean {
-    const expertKeywords = [
-      'professor', 'phd', 'research', 'published', 'author',
-      'expert', 'specialist', 'leading', 'authority', 'scholar'
+    const indicators = [
+      'professor', 'dr.', 'phd', 'researcher', 'scientist', 'expert',
+      'director', 'founder', 'ceo', 'author', 'published', 'study',
+      'research', 'university', 'institute', 'laboratory', 'fellow'
     ];
+    
     const lowerContent = content.toLowerCase();
-    return expertKeywords.some(keyword => lowerContent.includes(keyword));
+    return indicators.some(indicator => lowerContent.includes(indicator));
   }
 
   /**
-   * Check for contrarian indicators in content
+   * Check if content contains contrarian indicators
    */
   private containsContrarianIndicators(content: string): boolean {
-    const contrarianKeywords = [
-      'contrary', 'however', 'but', 'actually', 'surprising',
-      'unexpected', 'myth', 'wrong', 'debunk', 'challenge'
+    const indicators = [
+      'contrary to', 'however', 'but', 'despite', 'challenge', 'myth',
+      'misconception', 'wrong', 'debunk', 'actually', 'surprising',
+      'counterintuitive', 'opposite', 'against conventional',
+      'traditional thinking', 'commonly believed', 'most people think'
     ];
+    
     const lowerContent = content.toLowerCase();
-    return contrarianKeywords.some(keyword => lowerContent.includes(keyword));
+    return indicators.some(indicator => lowerContent.includes(indicator));
   }
 
   /**
-   * Get current request count (for monitoring)
+   * Get current request count
    */
   getRequestCount(): number {
     return this.requestCount;
   }
 
   /**
-   * Reset request count (for testing or daily reset)
+   * Reset request count (useful for testing)
    */
   resetRequestCount(): void {
     this.requestCount = 0;
+  }
+
+  /**
+   * Initialize from environment variable
+   */
+  static fromEnvironment(): TavilyClient | null {
+    const apiKey = import.meta.env.VITE_TAVILY_API_KEY;
+    
+    if (apiKey && apiKey !== 'your-tavily-api-key-here') {
+      console.log('✅ Tavily API key loaded from environment');
+      return new TavilyClient(apiKey);
+    }
+    
+    console.log('❌ No valid Tavily API key found in environment');
+    return null;
+  }
+
+  /**
+   * Generate research queries based on purpose and type
+   */
+  static generateQueries(purpose: string, type: 'experts' | 'spikyPOVs' | 'knowledgeTree'): string[] {
+    const domain = this.extractDomainFromPurpose(purpose);
+    
+    switch (type) {
+      case 'experts':
+        return [
+          `leading experts ${domain}`,
+          `top researchers ${domain}`,
+          `thought leaders ${domain}`,
+          `${domain} professor university`,
+          `${domain} director founder CEO`
+        ];
+        
+      case 'spikyPOVs':
+        return [
+          `${domain} conventional wisdom wrong`,
+          `${domain} contrarian view evidence`,
+          `${domain} debunked myths`,
+          `${domain} surprising research findings`,
+          `${domain} counterintuitive studies`
+        ];
+        
+      case 'knowledgeTree':
+        return [
+          `${domain} current state tools systems`,
+          `${domain} background knowledge`,
+          `${domain} dependencies related fields`,
+          `${domain} adjacent areas connections`,
+          `${domain} existing solutions analysis`
+        ];
+        
+      default:
+        return [purpose];
+    }
+  }
+
+  /**
+   * Extract domain from purpose text
+   */
+  private static extractDomainFromPurpose(purpose: string): string {
+    // Simple extraction - could be enhanced with NLP
+    const words = purpose.toLowerCase().split(' ');
+    const technicalTerms = words.filter(word => 
+      word.length > 4 && 
+      !['the', 'and', 'for', 'with', 'that', 'this', 'have', 'will', 'from', 'they', 'been', 'have', 'their', 'said', 'each', 'which', 'what', 'were', 'been', 'more', 'very', 'what', 'know', 'just', 'first', 'also', 'after', 'back', 'other', 'many', 'than', 'then', 'them', 'these', 'some', 'her', 'would', 'make', 'like', 'into', 'him', 'has', 'two', 'more', 'go', 'no', 'way', 'could', 'my', 'than', 'first', 'been', 'call', 'who', 'its', 'now', 'find', 'long', 'down', 'day', 'did', 'get', 'come', 'made', 'may', 'part'].includes(word)
+    );
+    
+    return technicalTerms.slice(0, 3).join(' ') || purpose.slice(0, 50);
   }
 } 
