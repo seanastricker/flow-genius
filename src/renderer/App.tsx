@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useDocumentStore } from './stores/document-store';
 import { useAuthStore, initializeAuth } from './stores/auth-store';
+
+// Import page components
 import { PurposeDefinition } from './pages/PurposeDefinition';
 import { ResearchProgress } from './components/features/ResearchProgress/ResearchProgress';
 
@@ -35,8 +37,6 @@ function HomePage() {
       navigate('/purpose');
     }
   }, []); // Only run on component mount
-
-  // Note: Removed automatic navigation to allow users to stay on home page when desired
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -246,28 +246,46 @@ function ReviewPage() {
 function App() {
   const { currentDocument, loadUserDocumentsFromFirebase } = useDocumentStore();
   const { isAuthenticated, isInitializing } = useAuthStore();
+  const [forceReady, setForceReady] = useState(false);
+
+  console.log('🚀 App component rendering, auth state:', {
+    isAuthenticated,
+    isInitializing,
+    forceReady,
+    currentDocument: currentDocument ? 'Has document' : 'No document'
+  });
 
   // Initialize Firebase authentication when app starts
   useEffect(() => {
-    console.log('Initializing Firebase authentication...');
     initializeAuth();
   }, []);
 
   // Load user documents from Firebase once authenticated
   useEffect(() => {
     if (isAuthenticated && !isInitializing) {
-      console.log('User authenticated, loading documents from Firebase...');
       loadUserDocumentsFromFirebase();
     }
   }, [isAuthenticated, isInitializing, loadUserDocumentsFromFirebase]);
 
-  // Show loading spinner while Firebase is initializing
-  if (isInitializing) {
+  // TEMPORARY FIX: Force app to load after 5 seconds if still stuck initializing
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isInitializing) {
+        setForceReady(true);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [isInitializing]);
+
+  // Show loading spinner while Firebase is initializing (with timeout fallback)
+  if (isInitializing && !forceReady) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-slate-600">Initializing Firebase...</p>
+          <p className="text-xs text-slate-400 mt-2">Will auto-load in 5 seconds...</p>
         </div>
       </div>
     );

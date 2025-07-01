@@ -43,20 +43,24 @@ export const useAuthStore = create<AuthState>()(
        */
       signInAnonymously: async (): Promise<boolean> => {
         try {
+          console.log('🔐 Starting anonymous sign-in...');
           set({ error: null, isInitializing: true });
           
           const result: FirebaseResult<User> = await firebaseClient.signInAnonymously();
           
           if (result.success) {
+            console.log('🔐 Anonymous sign-in successful, updating auth store...');
             set({
               user: result.data,
               isAuthenticated: true,
               isInitializing: false,
               error: null
             });
+            console.log('🔐 Auth store updated: isInitializing =', false);
             console.log('Anonymous sign-in successful');
             return true;
           } else {
+            console.log('🔐 Anonymous sign-in failed, updating auth store...');
             set({
               user: null,
               isAuthenticated: false,
@@ -68,6 +72,7 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown authentication error';
+          console.log('🔐 Sign-in error, updating auth store...');
           set({
             user: null,
             isAuthenticated: false,
@@ -83,6 +88,7 @@ export const useAuthStore = create<AuthState>()(
        * Sign out the current user
        */
       signOut: (): void => {
+        console.log('🔐 Signing out user...');
         set({
           user: null,
           isAuthenticated: false,
@@ -103,8 +109,19 @@ export const useAuthStore = create<AuthState>()(
        * @param user - The Firebase user object or null
        */
       setUser: (user: User | null): void => {
+        console.log('🔐 Auth store setUser called with user:', user ? 'User object' : 'null');
+        console.log('🔐 Current auth store state before setUser:', {
+          isAuthenticated: get().isAuthenticated,
+          isInitializing: get().isInitializing
+        });
+        
         set({
           user,
+          isAuthenticated: !!user,
+          isInitializing: false
+        });
+        
+        console.log('🔐 Auth store state after setUser:', {
           isAuthenticated: !!user,
           isInitializing: false
         });
@@ -115,6 +132,7 @@ export const useAuthStore = create<AuthState>()(
        * @param initializing - Whether authentication is still initializing
        */
       setInitializing: (initializing: boolean): void => {
+        console.log('🔐 Setting isInitializing to:', initializing);
         set({ isInitializing: initializing });
       }
     }),
@@ -128,12 +146,14 @@ export const useAuthStore = create<AuthState>()(
       }),
       // Custom storage handlers for Firebase User object
       onRehydrateStorage: () => (state) => {
+        console.log('🔐 Rehydrating auth storage...');
         if (state) {
           // Reset user and isAuthenticated on app restart
           // Firebase auth state listener will set the correct values
           state.user = null;
           state.isAuthenticated = false;
           state.isInitializing = true;
+          console.log('🔐 Auth state reset after rehydration: isInitializing = true');
         }
       }
     }
@@ -145,13 +165,18 @@ export const useAuthStore = create<AuthState>()(
  * This should be called once when the app starts
  */
 export function initializeAuth(): void {
+  console.log('🔐 initializeAuth called');
+  
   // Get the current Firebase user and set up the auth state listener
   const currentUser = firebaseClient.getCurrentUser();
+  console.log('🔐 Current Firebase user:', currentUser ? 'User exists' : 'No user');
   
   if (currentUser) {
+    console.log('🔐 Setting existing user in auth store...');
     useAuthStore.getState().setUser(currentUser);
   } else {
     // If no user is signed in, automatically sign in anonymously
+    console.log('🔐 No user found, starting anonymous sign-in...');
     useAuthStore.getState().signInAnonymously();
   }
 }

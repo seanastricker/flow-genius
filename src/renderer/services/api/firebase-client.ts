@@ -111,6 +111,12 @@ export class FirebaseClient {
     onAuthStateChanged(this.auth, (user) => {
       this.currentUser = user;
       console.log('Firebase auth state changed:', user ? 'Signed in' : 'Signed out');
+      
+      // IMPORTANT: Update the auth store to sync authentication state
+      // We need to dynamically import to avoid circular dependencies
+      import('../../stores/auth-store').then(({ useAuthStore }) => {
+        useAuthStore.getState().setUser(user);
+      }).catch(console.error);
     });
   }
 
