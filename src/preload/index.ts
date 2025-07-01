@@ -37,6 +37,9 @@ const electronAPI = {
   // Development tools
   openDevTools: () => ipcRenderer.invoke('dev:open-devtools'),
 
+  // External links
+  openExternal: (url: string) => ipcRenderer.invoke('app:open-external', url),
+
   // Research API
   research: {
     // Initialize research service

@@ -12,7 +12,7 @@ if (typeof global !== 'undefined' && !global.crypto) {
   } as any;
 }
 
-import { app, BrowserWindow, dialog } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { join } from 'path';
 import { researchService } from './research-service';
 
@@ -100,6 +100,9 @@ app.commandLine.appendSwitch('disable-software-rasterizer');
 app.whenReady().then(() => {
   createWindow();
 
+  // Set up IPC handlers
+  setupIpcHandlers();
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -111,4 +114,26 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
-}); 
+});
+
+/**
+ * Set up IPC handlers for communication with renderer process
+ */
+function setupIpcHandlers() {
+  // Handle opening external URLs
+  ipcMain.handle('app:open-external', async (event, url: string) => {
+    try {
+      // Validate URL to prevent security issues
+      const urlObj = new URL(url);
+      if (!['http:', 'https:'].includes(urlObj.protocol)) {
+        throw new Error('Only HTTP and HTTPS URLs are allowed');
+      }
+      
+      await shell.openExternal(url);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to open external URL:', error);
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  });
+} 
