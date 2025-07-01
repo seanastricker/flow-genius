@@ -1,0 +1,46 @@
+# BrainLift Generator - Setup Instructions
+
+## Installation
+1. Download "BrainLift Generator-0.1.0-x64.exe" (recommended for modern computers)
+   OR download "BrainLift Generator-0.1.0.exe" (works on all computers)
+2. Run the downloaded file
+3. Follow the installation wizard
+4. Launch "BrainLift Generator" from your desktop or Start menu
+
+## First-Time Setup
+1. Get your API keys:
+   - OpenAI API Key: Visit https://platform.openai.com/api-keys
+   - Tavily API Key: Visit https://app.tavily.com/
+2. When you first open the app, enter your API keys when prompted
+3. Start creating BrainLift documents!
+
+## How to Use
+1. Click "Create New BrainLift" 
+2. Define your purpose through the chat interface
+3. Click "Start Research Phase" when ready
+4. Wait for automated research to complete (~5-10 minutes)
+5. Review and edit the generated content
+6. Save your completed BrainLift document
+
+## System Requirements
+- Windows 10 or higher (64-bit recommended)
+- 8GB RAM minimum (16GB recommended)
+- 2GB free disk space
+- Internet connection (required for research features)
+
+## File Information
+- BrainLift Generator-0.1.0-x64.exe (104MB) - For 64-bit Windows (recommended)
+- BrainLift Generator-0.1.0.exe (203MB) - Universal installer (works on all systems)
+- BrainLift Generator-0.1.0-ia32.exe (99MB) - For older 32-bit systems
+
+## Troubleshooting
+- If Windows Defender blocks the installation, click "More info" → "Run anyway"
+- If antivirus software blocks it, temporarily disable or add an exception
+- Make sure you have administrator privileges for installation
+- Try running the installer as administrator if it fails
+
+## Support
+For questions or issues, contact: [Your email/contact info]
+
+Version: 0.1.0
+Built: July 2025 
