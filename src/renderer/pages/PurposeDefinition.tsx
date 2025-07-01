@@ -13,7 +13,16 @@ import { ChatInterface } from '../components/features/ChatInterface/ChatInterfac
 export function PurposeDefinition() {
   const [showStartResearch, setShowStartResearch] = useState(false);
   const navigate = useNavigate();
-  const { currentDocument, setDocumentStatus, createNewDocument, resetCurrentDocument } = useDocumentStore();
+  const { 
+    currentDocument, 
+    setDocumentStatus, 
+    createNewDocument, 
+    resetCurrentDocument 
+  } = useDocumentStore();
+
+  // Use more specific selectors to ensure React re-renders when purpose changes
+  const purposeProgress = useDocumentStore((state) => state.currentDocument?.purpose);
+  const isComplete = purposeProgress?.isComplete ?? false;
 
   /**
    * Handle when Purpose is complete and ready for research
@@ -47,9 +56,6 @@ export function PurposeDefinition() {
     setShowStartResearch(false);
   };
 
-  const purposeProgress = currentDocument?.purpose;
-  const isComplete = purposeProgress?.isComplete ?? false;
-
   return (
     <div className="h-screen flex flex-col bg-slate-50">
       {/* Header */}
@@ -76,22 +82,6 @@ export function PurposeDefinition() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 <span>New Document</span>
-              </button>
-              
-              {/* Debug button to test auto-save */}
-              <button
-                onClick={() => {
-                  console.log('=== AUTO-SAVE DEBUG ===');
-                  console.log('Current Document:', currentDocument);
-                  console.log('localStorage key: brainlift-document-storage');
-                  console.log('localStorage value:', localStorage.getItem('brainlift-document-storage'));
-                }}
-                className="flex items-center space-x-1 px-3 py-2 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
-                <span>Debug Save</span>
               </button>
             </div>
             

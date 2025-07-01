@@ -4,6 +4,8 @@
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { firebaseClient, type FirebaseResult } from '../services/api/firebase-client';
+import { useAuthStore } from './auth-store';
 
 // Core interfaces following Firebase schema
 export type DocumentStatus = 
@@ -152,6 +154,8 @@ interface DocumentStore {
   // UI state
   isLoading: boolean;
   error: string | null;
+  isSyncing: boolean;
+  syncError: string | null;
   
   // Actions
   createNewDocument: () => void;
@@ -163,6 +167,14 @@ interface DocumentStore {
   loadDocumentFromHistory: (documentId: string) => void;
   clearError: () => void;
   resetCurrentDocument: () => void;
+  
+  // Firebase sync actions
+  syncToFirebase: () => Promise<boolean>;
+  loadFromFirebase: (documentId: string) => Promise<boolean>;
+  loadUserDocumentsFromFirebase: () => Promise<boolean>;
+  deleteDocumentFromFirebase: (documentId: string) => Promise<boolean>;
+  setSyncStatus: (syncing: boolean) => void;
+  setSyncError: (error: string | null) => void;
 }
 
 /**
@@ -224,6 +236,8 @@ export const useDocumentStore = create<DocumentStore>()(
       documentHistory: [],
       isLoading: false,
       error: null,
+      isSyncing: false,
+      syncError: null,
 
       createNewDocument: () => {
         const newDocument: BrainLiftDocument = {
@@ -258,6 +272,14 @@ export const useDocumentStore = create<DocumentStore>()(
         
         // Auto-save to history whenever document is updated
         get().saveCurrentDocumentToHistory();
+        
+        // Auto-sync to Firebase if user is authenticated
+        const authState = useAuthStore.getState();
+        if (authState.isAuthenticated && authState.user) {
+          get().syncToFirebase().catch(error => {
+            console.warn('Auto-sync to Firebase failed:', error);
+          });
+        }
       },
 
       updatePurpose: (purposeUpdates) => {
@@ -316,6 +338,14 @@ export const useDocumentStore = create<DocumentStore>()(
         // Auto-save to history when AI responds (not just user messages)
         if (message.role === 'assistant') {
           get().saveCurrentDocumentToHistory();
+          
+          // Auto-sync to Firebase when AI responds
+          const authState = useAuthStore.getState();
+          if (authState.isAuthenticated && authState.user) {
+            get().syncToFirebase().catch(error => {
+              console.warn('Auto-sync to Firebase failed:', error);
+            });
+          }
         }
       },
 
@@ -360,7 +390,193 @@ export const useDocumentStore = create<DocumentStore>()(
 
       clearError: () => set({ error: null }),
 
-      resetCurrentDocument: () => set({ currentDocument: null, error: null })
+      resetCurrentDocument: () => set({ currentDocument: null, error: null }),
+
+      /**
+       * Sync current document to Firebase
+       */
+      syncToFirebase: async (): Promise<boolean> => {
+        const { currentDocument } = get();
+        if (!currentDocument) {
+          set({ syncError: 'No document to sync' });
+          return false;
+        }
+
+        // Check if user is authenticated
+        const authState = useAuthStore.getState();
+        if (!authState.isAuthenticated || !authState.user) {
+          set({ syncError: 'User not authenticated' });
+          return false;
+        }
+
+        set({ isSyncing: true, syncError: null });
+
+        try {
+          // Update document with current user ID
+          const documentToSave = {
+            ...currentDocument,
+            userId: authState.user.uid,
+            updatedAt: new Date()
+          };
+
+          const result = await firebaseClient.saveDocument(documentToSave);
+          
+          if (result.success) {
+            // Don't update local state to avoid race conditions with purpose updates
+            set({ isSyncing: false });
+            
+            // Also update in history
+            get().saveCurrentDocumentToHistory();
+            
+            console.log('Document synced to Firebase successfully');
+            return true;
+          } else {
+            set({ 
+              isSyncing: false, 
+              syncError: result.error 
+            });
+            return false;
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown sync error';
+          set({ 
+            isSyncing: false, 
+            syncError: errorMessage 
+          });
+          return false;
+        }
+      },
+
+      /**
+       * Load a document from Firebase
+       */
+      loadFromFirebase: async (documentId: string): Promise<boolean> => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const result = await firebaseClient.getDocument(documentId);
+          
+          if (result.success && result.data) {
+            set({ 
+              currentDocument: result.data,
+              isLoading: false
+            });
+            
+            // Add to local history
+            get().saveCurrentDocumentToHistory();
+            
+            console.log('Document loaded from Firebase:', documentId);
+            return true;
+          } else if (result.success && !result.data) {
+            set({ 
+              isLoading: false,
+              error: 'Document not found'
+            });
+            return false;
+          } else {
+            set({ 
+              isLoading: false,
+              error: !result.success ? result.error : 'Unknown error'
+            });
+            return false;
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error loading document';
+          set({ 
+            isLoading: false,
+            error: errorMessage
+          });
+          return false;
+        }
+      },
+
+      /**
+       * Load all user documents from Firebase
+       */
+      loadUserDocumentsFromFirebase: async (): Promise<boolean> => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const result = await firebaseClient.getUserDocuments();
+          
+          if (result.success) {
+            set({ 
+              documentHistory: result.data,
+              isLoading: false
+            });
+            
+            console.log(`Loaded ${result.data.length} documents from Firebase`);
+            return true;
+          } else {
+            set({ 
+              isLoading: false,
+              error: !result.success ? result.error : 'Unknown error'
+            });
+            return false;
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error loading documents';
+          set({ 
+            isLoading: false,
+            error: errorMessage
+          });
+          return false;
+        }
+      },
+
+      /**
+       * Delete a document from Firebase
+       */
+      deleteDocumentFromFirebase: async (documentId: string): Promise<boolean> => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const result = await firebaseClient.deleteDocument(documentId);
+          
+          if (result.success) {
+            // Remove from local history
+            const { documentHistory, currentDocument } = get();
+            const updatedHistory = documentHistory.filter(doc => doc.id !== documentId);
+            
+            set({ 
+              documentHistory: updatedHistory,
+              isLoading: false,
+              // Clear current document if it was deleted
+              currentDocument: currentDocument?.id === documentId ? null : currentDocument
+            });
+            
+            console.log('Document deleted from Firebase:', documentId);
+            return true;
+          } else {
+            set({ 
+              isLoading: false,
+              error: !result.success ? result.error : 'Unknown error'
+            });
+            return false;
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error deleting document';
+          set({ 
+            isLoading: false,
+            error: errorMessage
+          });
+          return false;
+        }
+      },
+
+      /**
+       * Set sync status
+       */
+      setSyncStatus: (syncing: boolean) => {
+        set({ isSyncing: syncing });
+      },
+
+      /**
+       * Set sync error
+       */
+      setSyncError: (error: string | null) => {
+        set({ syncError: error });
+      }
     }),
     {
       name: 'brainlift-document-storage',

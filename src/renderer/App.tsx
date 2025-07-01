@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useDocumentStore } from './stores/document-store';
+import { useAuthStore, initializeAuth } from './stores/auth-store';
 import { PurposeDefinition } from './pages/PurposeDefinition';
 
 /**
@@ -150,7 +151,34 @@ function ReviewPage() {
  * Main App component with routing
  */
 function App() {
-  const { currentDocument } = useDocumentStore();
+  const { currentDocument, loadUserDocumentsFromFirebase } = useDocumentStore();
+  const { isAuthenticated, isInitializing } = useAuthStore();
+
+  // Initialize Firebase authentication when app starts
+  useEffect(() => {
+    console.log('Initializing Firebase authentication...');
+    initializeAuth();
+  }, []);
+
+  // Load user documents from Firebase once authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isInitializing) {
+      console.log('User authenticated, loading documents from Firebase...');
+      loadUserDocumentsFromFirebase();
+    }
+  }, [isAuthenticated, isInitializing, loadUserDocumentsFromFirebase]);
+
+  // Show loading spinner while Firebase is initializing
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Initializing Firebase...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>
