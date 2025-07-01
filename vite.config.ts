@@ -33,6 +33,7 @@ export default defineConfig({
     ]),
     renderer()
   ],
+  envDir: resolve(__dirname, '.'), // Look for .env files in project root
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src/renderer'),
