@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/renderer/*"],
+      "@/components/*": ["src/renderer/components/*"],
+      "@/pages/*": ["src/renderer/pages/*"],
+      "@/hooks/*": ["src/renderer/hooks/*"],
+      "@/services/*": ["src/renderer/services/*"],
+      "@/stores/*": ["src/renderer/stores/*"],
+      "@/utils/*": ["src/renderer/utils/*"],
+      "@/types/*": ["src/shared/types/*"],
+      "@/constants/*": ["src/shared/constants/*"],
+      "@shared/*": ["src/shared/*"]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-electron"
+  ]
+} 
