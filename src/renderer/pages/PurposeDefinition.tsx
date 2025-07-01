@@ -2,7 +2,7 @@
  * Purpose Definition page for BrainLift document creation
  * Integrates chat interface with purpose progress tracking
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDocumentStore } from '../stores/document-store';
 import { ChatInterface } from '../components/features/ChatInterface/ChatInterface';
@@ -17,12 +17,22 @@ export function PurposeDefinition() {
     currentDocument, 
     setDocumentStatus, 
     createNewDocument, 
-    resetCurrentDocument 
+    resetCurrentDocument,
+    startResearchWorkflow
   } = useDocumentStore();
 
   // Use more specific selectors to ensure React re-renders when purpose changes
   const purposeProgress = useDocumentStore((state) => state.currentDocument?.purpose);
+  const documentStatus = useDocumentStore((state) => state.currentDocument?.status);
   const isComplete = purposeProgress?.isComplete ?? false;
+
+  // Navigate to research page when status changes to 'research-active'
+  useEffect(() => {
+    if (documentStatus === 'research-active') {
+      console.log('Document status changed to research-active, navigating to /research');
+      navigate('/research');
+    }
+  }, [documentStatus, navigate]);
 
   /**
    * Handle when Purpose is complete and ready for research
@@ -34,10 +44,21 @@ export function PurposeDefinition() {
   /**
    * Handle starting the research phase
    */
-  const handleStartResearch = () => {
-    setDocumentStatus('research-active');
-    // TODO: Navigate to research phase (will be implemented in next feature)
-    console.log('Starting research phase...');
+  const handleStartResearch = async () => {
+    try {
+      console.log('Starting research workflow...');
+      const success = await startResearchWorkflow();
+      
+      if (success) {
+        // Navigation will be handled automatically by App.tsx routing
+        console.log('Research workflow started successfully');
+      } else {
+        console.error('Failed to start research workflow');
+        // Show error to user (error is already set in store)
+      }
+    } catch (error) {
+      console.error('Error starting research workflow:', error);
+    }
   };
 
   /**

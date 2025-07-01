@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { useDocumentStore } from './stores/document-store';
 import { useAuthStore, initializeAuth } from './stores/auth-store';
 import { PurposeDefinition } from './pages/PurposeDefinition';
+import { ResearchProgress } from './components/features/ResearchProgress/ResearchProgress';
 
 /**
  * Home page component for starting new BrainLift documents
@@ -120,14 +121,34 @@ function HomePage() {
 }
 
 /**
- * Research page placeholder (will be implemented in Feature 3)
+ * Research page component
  */
 function ResearchPage() {
+  const { currentDocument } = useDocumentStore();
+
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Research Phase</h1>
-        <p className="text-slate-600">This feature will be implemented in the next phase.</p>
+    <div className="min-h-screen bg-slate-50">
+      <div className="container mx-auto px-4 py-8">
+        <header className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Research Phase</h1>
+              <p className="text-slate-600 mt-1">
+                Automated research for your BrainLift document
+              </p>
+            </div>
+            {currentDocument && (
+              <div className="text-right">
+                <div className="text-sm text-slate-500">Document</div>
+                <div className="font-medium text-slate-900">{currentDocument.title}</div>
+              </div>
+            )}
+          </div>
+        </header>
+
+        <main>
+          <ResearchProgress />
+        </main>
       </div>
     </div>
   );

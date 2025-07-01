@@ -175,6 +175,12 @@ interface DocumentStore {
   deleteDocumentFromFirebase: (documentId: string) => Promise<boolean>;
   setSyncStatus: (syncing: boolean) => void;
   setSyncError: (error: string | null) => void;
+  
+  // Research workflow actions
+  startResearchWorkflow: () => Promise<boolean>;
+  updateResearchProgress: (progress: ResearchProgress) => void;
+  updateResearchResults: (experts?: ExpertSection[], spikyPOVs?: SpikyPOVSection[], knowledgeTree?: KnowledgeTreeSection[]) => void;
+  completeResearchWorkflow: () => void;
 }
 
 /**
@@ -576,6 +582,161 @@ export const useDocumentStore = create<DocumentStore>()(
        */
       setSyncError: (error: string | null) => {
         set({ syncError: error });
+      },
+
+      /**
+       * Start research workflow for current document
+       */
+      startResearchWorkflow: async (): Promise<boolean> => {
+        const { currentDocument } = get();
+        if (!currentDocument) {
+          set({ error: 'No document to start research for' });
+          return false;
+        }
+
+        if (!currentDocument.purpose.isComplete) {
+          set({ error: 'Purpose must be completed before starting research' });
+          return false;
+        }
+
+        try {
+          // Import research store dynamically to avoid circular imports
+          const { useResearchStore } = await import('./research-store');
+          const researchStore = useResearchStore.getState();
+
+          // Initialize worker manager if not ready
+          if (!researchStore.isWorkerManagerReady) {
+            // Get API keys from environment or user config
+            const apiKeys = {
+              tavily: import.meta.env.VITE_TAVILY_API_KEY || '',
+              openai: import.meta.env.VITE_OPENAI_API_KEY || ''
+            };
+
+            // Initialize with whatever keys are available (empty keys will trigger stub worker)
+            console.log('Initializing research engine with API keys:', {
+              tavily: apiKeys.tavily ? '[SET]' : '[EMPTY]',
+              openai: apiKeys.openai ? '[SET]' : '[EMPTY]'
+            });
+
+            const initialized = await researchStore.initializeWorkerManager(apiKeys);
+            if (!initialized) {
+              set({ error: 'Failed to initialize research engine' });
+              return false;
+            }
+          }
+
+          // Update document status to research-active
+          get().setDocumentStatus('research-active');
+
+          // Initialize research progress
+          const initialProgress: ResearchProgress = {
+            experts: { status: 'pending', progress: 0 },
+            spikyPOVs: { status: 'pending', progress: 0 },
+            knowledgeTree: { status: 'pending', progress: 0 },
+            overallProgress: 0
+          };
+
+          get().updateResearchProgress(initialProgress);
+
+          // Start research session
+          const success = await researchStore.startResearchSession(currentDocument.id, currentDocument.purpose);
+          
+          if (success) {
+            // Auto-sync to Firebase
+            await get().syncToFirebase();
+            return true;
+          } else {
+            set({ error: 'Failed to start research session' });
+            get().setDocumentStatus('purpose-definition');
+            return false;
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error starting research';
+          set({ error: errorMessage });
+          get().setDocumentStatus('purpose-definition');
+          return false;
+        }
+      },
+
+      /**
+       * Update research progress
+       */
+      updateResearchProgress: (progress: ResearchProgress) => {
+        const { currentDocument } = get();
+        if (!currentDocument) return;
+
+        const updatedDocument = {
+          ...currentDocument,
+          researchProgress: progress,
+          updatedAt: new Date()
+        };
+
+        set({ currentDocument: updatedDocument });
+      },
+
+      /**
+       * Update research results
+       */
+      updateResearchResults: (
+        experts?: ExpertSection[], 
+        spikyPOVs?: SpikyPOVSection[], 
+        knowledgeTree?: KnowledgeTreeSection[]
+      ) => {
+        const { currentDocument } = get();
+        if (!currentDocument) return;
+
+        const updatedDocument = {
+          ...currentDocument,
+          experts: experts || currentDocument.experts,
+          spikyPOVs: spikyPOVs || currentDocument.spikyPOVs,
+          knowledgeTree: knowledgeTree || currentDocument.knowledgeTree,
+          updatedAt: new Date()
+        };
+
+        set({ currentDocument: updatedDocument });
+      },
+
+      /**
+       * Complete research workflow
+       */
+      completeResearchWorkflow: () => {
+        const { currentDocument } = get();
+        if (!currentDocument) return;
+
+        // Update document status and progress
+        const completedProgress: ResearchProgress = {
+          experts: { 
+            ...currentDocument.researchProgress.experts, 
+            status: 'completed', 
+            progress: 100,
+            completedTime: new Date()
+          },
+          spikyPOVs: { 
+            ...currentDocument.researchProgress.spikyPOVs, 
+            status: 'completed', 
+            progress: 100,
+            completedTime: new Date()
+          },
+          knowledgeTree: { 
+            ...currentDocument.researchProgress.knowledgeTree, 
+            status: 'completed', 
+            progress: 100,
+            completedTime: new Date()
+          },
+          overallProgress: 100
+        };
+
+        const updatedDocument = {
+          ...currentDocument,
+          status: 'research-complete' as DocumentStatus,
+          researchProgress: completedProgress,
+          updatedAt: new Date()
+        };
+
+        set({ currentDocument: updatedDocument });
+
+        // Auto-sync to Firebase
+        get().syncToFirebase();
       }
     }),
     {

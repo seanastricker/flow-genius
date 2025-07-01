@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import { join } from 'path';
+import { researchService } from './research-service';
 
 /**
  * Creates the main application window with proper security settings
@@ -36,6 +37,9 @@ function createWindow(): BrowserWindow {
     mainWindow.show();
     mainWindow.focus();
   });
+
+  // Set main window reference for research service
+  researchService.setMainWindow(mainWindow);
 
   return mainWindow;
 }

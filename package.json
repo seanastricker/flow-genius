@@ -20,12 +20,14 @@
   "dependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.10.0",
     "firebase": "^11.10.0",
     "fs-extra": "^11.3.0",
     "openai": "^5.8.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.6.3",
+    "tavily": "^1.0.2",
     "zustand": "^4.4.0"
   },
   "devDependencies": {

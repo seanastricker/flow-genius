@@ -1,6 +1,25 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 /**
+ * Research API types
+ */
+interface ResearchServiceConfig {
+  tavilyApiKey: string;
+  openaiApiKey: string;
+  workerCount?: number;
+  maxRetries?: number;
+  jobTimeout?: number;
+}
+
+interface WorkerJob {
+  id: string;
+  type: 'experts' | 'spikyPOVs' | 'knowledgeTree';
+  queries: string[];
+  purpose: string;
+  sectionRequirements: any;
+}
+
+/**
  * Exposed APIs for the renderer process
  */
 const electronAPI = {
@@ -17,6 +36,51 @@ const electronAPI = {
 
   // Development tools
   openDevTools: () => ipcRenderer.invoke('dev:open-devtools'),
+
+  // Research API
+  research: {
+    // Initialize research service
+    initialize: (config: ResearchServiceConfig) => 
+      ipcRenderer.invoke('research-initialize', config),
+    
+    // Execute single job
+    executeJob: (job: WorkerJob) => 
+      ipcRenderer.invoke('research-execute-job', job),
+    
+    // Execute multiple jobs in parallel
+    executeJobsParallel: (jobs: WorkerJob[]) => 
+      ipcRenderer.invoke('research-execute-jobs-parallel', jobs),
+    
+    // Get worker status
+    getStatus: () => 
+      ipcRenderer.invoke('research-get-status'),
+    
+    // Cancel job
+    cancelJob: (jobId: string) => 
+      ipcRenderer.invoke('research-cancel-job', jobId),
+    
+    // Shutdown service
+    shutdown: () => 
+      ipcRenderer.invoke('research-shutdown'),
+
+    // Event listeners for research updates
+    onProgress: (callback: (data: any) => void) => {
+      ipcRenderer.on('research-progress', (_, data) => callback(data));
+    },
+    
+    onComplete: (callback: (data: any) => void) => {
+      ipcRenderer.on('research-complete', (_, data) => callback(data));
+    },
+    
+    onError: (callback: (data: any) => void) => {
+      ipcRenderer.on('research-error', (_, data) => callback(data));
+    },
+
+    // Remove research event listeners
+    removeProgressListeners: () => ipcRenderer.removeAllListeners('research-progress'),
+    removeCompleteListeners: () => ipcRenderer.removeAllListeners('research-complete'),
+    removeErrorListeners: () => ipcRenderer.removeAllListeners('research-error')
+  },
 
   // Event listeners
   onWindowEvent: (callback: (event: string) => void) => {
