@@ -10,9 +10,9 @@ const path = require('path');
 
 // You'll paste the Firebase Storage URLs here
 const FIREBASE_URLS = {
-  'installer': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainSwift-0.1.0.exe?alt=media&token=8d3f496a-da76-4d1b-91aa-b47b1224ecff',     // BrainLift Generator-0.1.0.exe
-  'x64': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainSwift-0.1.0-x64.exe?alt=media&token=61ebd8d0-b3dc-4e64-b8ac-57e6033e66cf',                 // BrainLift Generator-0.1.0-x64.exe  
-  'ia32': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainSwift-0.1.0-ia32.exe?alt=media&token=f352fe79-739c-4cf4-8140-726814c3df8e'                // BrainLift Generator-0.1.0-ia32.exe
+  'installer': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainSwift-0.1.0.exe?alt=media&token=702cf06c-e7b6-4c3b-9146-cc26d928bb6d',     // BrainLift Generator-0.1.0.exe
+  'x64': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainSwift-0.1.0-x64.exe?alt=media&token=55a19a49-0767-4742-acc4-17deec61427c',                 // BrainLift Generator-0.1.0-x64.exe  
+  'ia32': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainSwift-0.1.0-ia32.exe?alt=media&token=ac35be56-6d0f-46c5-ad27-b70db799ddb3'                // BrainLift Generator-0.1.0-ia32.exe
 };
 
 function updateWebsiteHTML() {
