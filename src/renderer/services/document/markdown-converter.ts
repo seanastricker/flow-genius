@@ -90,7 +90,7 @@ function generateMetadataSection(document: BrainLiftDocument): string {
   const metadata = [
     '## Document Information',
     '',
-    `**Status:** ${document.status}`,
+    `**Status:** completed`,
     `**Created:** ${formatDate(document.createdAt)}`,
     `**Last Updated:** ${formatDate(document.updatedAt)}`,
     `**Document ID:** ${document.id}`
@@ -122,17 +122,17 @@ function generateTableOfContents(document: BrainLiftDocument, numbering: boolean
   let sectionNumber = 2;
   
   if (document.experts && document.experts.length > 0) {
-    sections.push(`${sectionNumber}. Experts (${document.experts.length})`);
+    sections.push(`${sectionNumber}. Experts`);
     sectionNumber++;
   }
   
   if (document.spikyPOVs && document.spikyPOVs.length > 0) {
-    sections.push(`${sectionNumber}. SpikyPOVs (${document.spikyPOVs.length})`);
+    sections.push(`${sectionNumber}. SpikyPOVs`);
     sectionNumber++;
   }
   
   if (document.knowledgeTree && document.knowledgeTree.length > 0) {
-    sections.push(`${sectionNumber}. Knowledge Tree (${document.knowledgeTree.length})`);
+    sections.push(`${sectionNumber}. Knowledge Tree`);
   }
   
   toc.push(...sections);
@@ -180,7 +180,7 @@ function generateExpertsSection(experts: ExpertSection[], config: MarkdownOption
   const sections = [sectionTitle, ''];
   
   experts.forEach((expert, index) => {
-    sections.push(`### Expert ${index + 1}: ${expert.expert.name}`);
+    sections.push(`### ${expert.expert.name}`);
     sections.push(`**Title:** ${expert.expert.title}`);
     sections.push(`**Focus Area:** ${expert.expert.focusArea}`);
     sections.push(`**Relevance:** ${expert.expert.relevance}`);
@@ -211,7 +211,7 @@ function generateSpikyPOVsSection(spikyPOVs: SpikyPOVSection[], config: Markdown
   const sections = [sectionTitle, ''];
   
   spikyPOVs.forEach((spiky, index) => {
-    sections.push(`### SpikyPOV ${index + 1}: ${spiky.consensusView} vs ${spiky.contrarianInsight}`);
+    sections.push(`### ${spiky.consensusView} vs ${spiky.contrarianInsight}`);
     sections.push('');
     sections.push(spiky.generatedContent);
     sections.push('');
@@ -239,7 +239,6 @@ function generateKnowledgeTreeSection(knowledgeTree: KnowledgeTreeSection[], con
   const sections = [sectionTitle, ''];
   
   knowledgeTree.forEach((knowledge, index) => {
-    sections.push(`### Knowledge Tree ${index + 1}`);
     sections.push('');
     sections.push(knowledge.generatedContent);
     sections.push('');

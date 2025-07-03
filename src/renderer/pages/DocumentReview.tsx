@@ -238,7 +238,7 @@ export function DocumentReview() {
                       : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                   }`}
                 >
-                  {tab.label} ({tab.count})
+                  {tab.label}
                 </button>
               ))}
             </nav>
@@ -252,7 +252,7 @@ export function DocumentReview() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <h3 className="text-lg font-semibold text-slate-900 mb-4">
-                    Expert {index + 1}: {expert.expert?.name || 'Unknown Expert'}
+                    Experts
                   </h3>
                   <ContentEditor
                     content={expert.generatedContent || ''}
@@ -275,7 +275,7 @@ export function DocumentReview() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <h3 className="text-lg font-semibold text-slate-900 mb-4">
-                    SpikyPOV {index + 1}
+                    SpikyPOVs
                   </h3>
                   <ContentEditor
                     content={spiky.generatedContent || ''}
@@ -295,7 +295,7 @@ export function DocumentReview() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <h3 className="text-lg font-semibold text-slate-900 mb-4">
-                    Knowledge Tree {index + 1}
+                    Knowledge Tree
                   </h3>
                   <ContentEditor
                     content={knowledge.generatedContent || ''}
