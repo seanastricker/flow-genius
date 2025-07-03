@@ -6,6 +6,7 @@ import { useAuthStore, initializeAuth } from './stores/auth-store';
 // Import page components
 import { PurposeDefinition } from './pages/PurposeDefinition';
 import { DocumentReview } from './pages/DocumentReview';
+import { DocumentSave } from './pages/DocumentSave';
 import { ResearchProgress } from './components/features/ResearchProgress/ResearchProgress';
 
 /**
@@ -253,6 +254,9 @@ function App() {
           {/* Review route */}
           <Route path="/review" element={<DocumentReview />} />
           
+          {/* Save route */}
+          <Route path="/save" element={<DocumentSave />} />
+          
           {/* Default redirect based on document state */}
           <Route path="*" element={
             currentDocument ? (
@@ -262,6 +266,8 @@ function App() {
                 <Navigate to="/research" replace />
               ) : currentDocument.status === 'research-complete' || currentDocument.status === 'in-review' ? (
                 <Navigate to="/review" replace />
+              ) : currentDocument.status === 'completed' ? (
+                <Navigate to="/" replace />
               ) : (
                 <Navigate to="/" replace />
               )

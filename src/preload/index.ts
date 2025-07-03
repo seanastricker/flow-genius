@@ -40,6 +40,24 @@ const electronAPI = {
   // External links
   openExternal: (url: string) => ipcRenderer.invoke('app:open-external', url),
 
+  // File system API
+  fileSystem: {
+    saveDocument: (request: { content: string; projectName: string; filename: string }) =>
+      ipcRenderer.invoke('fs:save-document', request),
+    
+    listProjects: () =>
+      ipcRenderer.invoke('fs:list-projects'),
+    
+    createProject: (projectName: string) =>
+      ipcRenderer.invoke('fs:create-project', projectName),
+    
+    fileExists: (projectName: string, filename: string) =>
+      ipcRenderer.invoke('fs:file-exists', projectName, filename),
+    
+    getFileStats: (filePath: string) =>
+      ipcRenderer.invoke('fs:get-file-stats', filePath)
+  },
+
   // Research API
   research: {
     // Initialize research service

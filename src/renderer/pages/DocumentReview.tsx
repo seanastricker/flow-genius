@@ -156,9 +156,9 @@ export function DocumentReview() {
   };
 
   const handleProceedToSave = () => {
-    // TODO: Navigate to save page (Feature 6)
+    // Navigate to save page (Feature 6)
     console.log('Proceeding to save page...');
-    // navigate('/save');
+    navigate('/save');
   };
 
   const sectionTabs = [

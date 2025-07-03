@@ -125,6 +125,14 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export interface DocumentVersion {
+  version: number;
+  timestamp: Date;
+  filePath: string;
+  status: DocumentStatus;
+  description: string;
+}
+
 export interface BrainLiftDocument {
   id: string;                    // Auto-generated document ID
   title: string;                 // User-defined or auto-generated title
@@ -144,6 +152,7 @@ export interface BrainLiftDocument {
   chatHistory: ChatMessage[];
   projectName?: string;         // Set during save process
   filePath?: string;           // Final saved file location
+  versionHistory?: DocumentVersion[]; // Document version tracking
 }
 
 interface DocumentStore {
@@ -165,8 +174,10 @@ interface DocumentStore {
   setDocumentStatus: (status: DocumentStatus) => void;
   saveCurrentDocumentToHistory: () => void;
   loadDocumentFromHistory: (documentId: string) => void;
+  clearHistory: () => void;
   clearError: () => void;
   resetCurrentDocument: () => void;
+  createVersionSnapshot: (document: BrainLiftDocument, filePath: string) => void;
   
   // Firebase sync actions
   syncToFirebase: () => Promise<boolean>;
@@ -278,6 +289,11 @@ export const useDocumentStore = create<DocumentStore>()(
         
         // Auto-save to history whenever document is updated
         get().saveCurrentDocumentToHistory();
+        
+        // Create version snapshot if document is completed
+        if (updates.status === 'completed' && updates.filePath) {
+          get().createVersionSnapshot(updatedDocument, updates.filePath);
+        }
         
         // Auto-sync to Firebase if user is authenticated
         const authState = useAuthStore.getState();
@@ -394,9 +410,50 @@ export const useDocumentStore = create<DocumentStore>()(
         }
       },
 
+      clearHistory: () => {
+        set({ documentHistory: [] });
+        console.log('Document history cleared');
+      },
+
       clearError: () => set({ error: null }),
 
       resetCurrentDocument: () => set({ currentDocument: null, error: null }),
+
+      createVersionSnapshot: (document: BrainLiftDocument, filePath: string) => {
+        console.log('Creating version snapshot for document:', document.title);
+        console.log('Saved to:', filePath);
+        
+        // Store version information in the document history
+        const versionInfo = {
+          ...document,
+          versionHistory: [
+            ...(document.versionHistory || []),
+            {
+              version: (document.versionHistory?.length || 0) + 1,
+              timestamp: new Date(),
+              filePath,
+              status: document.status,
+              description: `Document completed and saved to ${filePath}`
+            }
+          ]
+        };
+        
+        // Update the document in history with version information
+        const { documentHistory } = get();
+        const updatedHistory = documentHistory.map(doc => 
+          doc.id === document.id ? versionInfo : doc
+        );
+        
+        set({ documentHistory: updatedHistory });
+        
+        // Auto-sync version information to Firebase
+        const authState = useAuthStore.getState();
+        if (authState.isAuthenticated && authState.user) {
+          get().syncToFirebase().catch(error => {
+            console.warn('Failed to sync version information to Firebase:', error);
+          });
+        }
+      },
 
       /**
        * Sync current document to Firebase

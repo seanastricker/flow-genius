@@ -15,6 +15,7 @@ if (typeof global !== 'undefined' && !global.crypto) {
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { join } from 'path';
 import { researchService } from './research-service';
+import { initializeFileSystemHandlers } from './file-system';
 
 /**
  * Creates the main application window with proper security settings
@@ -120,6 +121,9 @@ app.on('window-all-closed', () => {
  * Set up IPC handlers for communication with renderer process
  */
 function setupIpcHandlers() {
+  // Initialize file system handlers for document saving
+  initializeFileSystemHandlers();
+  
   // Handle opening external URLs
   ipcMain.handle('app:open-external', async (event, url: string) => {
     try {
