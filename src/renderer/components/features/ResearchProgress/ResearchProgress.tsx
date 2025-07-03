@@ -160,6 +160,7 @@ export function ResearchProgress(): JSX.Element {
   } = useResearchStore();
 
   const [isStarting, setIsStarting] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Get research progress from current document
   const researchProgress = currentDocument?.researchProgress;
@@ -167,12 +168,21 @@ export function ResearchProgress(): JSX.Element {
                           currentDocument?.status === 'purpose-definition';
   const isResearchActive = currentDocument?.status === 'research-active';
   const isResearchComplete = currentDocument?.status === 'research-complete';
+  
+  // Check if research has been completed and content exists (any status with research content)
+  const hasResearchContent = (currentDocument?.experts && currentDocument.experts.length > 0) ||
+                             (currentDocument?.spikyPOVs && currentDocument.spikyPOVs.length > 0) ||
+                             (currentDocument?.knowledgeTree && currentDocument.knowledgeTree.length > 0);
+  
+  const hasCompletedResearch = isResearchComplete || 
+    (currentDocument?.status === 'in-review' && hasResearchContent) ||
+    (currentDocument?.status === 'completed' && hasResearchContent);
 
   /**
    * Handle navigation to review page
    */
   function handleReviewResults(): void {
-    if (isResearchComplete) {
+    if (hasCompletedResearch) {
       navigate('/review');
     }
   }
@@ -209,6 +219,60 @@ export function ResearchProgress(): JSX.Element {
       console.error('Error starting research:', error);
     } finally {
       setIsStarting(false);
+    }
+  }
+
+  /**
+   * Handle cancelling active research
+   */
+  async function handleCancelResearch(): Promise<void> {
+    if (!isResearchActive) return;
+
+    setIsCancelling(true);
+
+    try {
+      // Reset document status to purpose-definition to allow re-initiation
+      await useDocumentStore.getState().setDocumentStatus('purpose-definition');
+      
+      // Could add actual research cancellation logic here if needed
+      console.log('Research cancelled - status reset to purpose-definition');
+    } catch (error) {
+      console.error('Error cancelling research:', error);
+    } finally {
+      setIsCancelling(false);
+    }
+  }
+
+  /**
+   * Handle re-initiating research (restart from scratch)
+   */
+  async function handleRestartResearch(): Promise<void> {
+    setIsCancelling(true);
+
+    try {
+      // Reset document status and clear previous research progress
+      await useDocumentStore.getState().setDocumentStatus('purpose-definition');
+      
+      // Clear existing research data
+      if (currentDocument) {
+        useDocumentStore.getState().updateDocument({
+          experts: [],
+          spikyPOVs: [],
+          knowledgeTree: [],
+          researchProgress: {
+            experts: { status: 'pending', progress: 0 },
+            spikyPOVs: { status: 'pending', progress: 0 },
+            knowledgeTree: { status: 'pending', progress: 0 },
+            overallProgress: 0
+          }
+        });
+      }
+      
+      console.log('Research restarted - ready for new research');
+    } catch (error) {
+      console.error('Error restarting research:', error);
+    } finally {
+      setIsCancelling(false);
     }
   }
 
@@ -286,7 +350,7 @@ export function ResearchProgress(): JSX.Element {
         />
 
         {/* Action Buttons */}
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-3">
           {canStartResearch && (
             <button
               onClick={handleStartResearch}
@@ -307,15 +371,56 @@ export function ResearchProgress(): JSX.Element {
             </button>
           )}
 
-          {isResearchComplete && (
-            <button
-              onClick={handleReviewResults}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium
-                         hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500
-                         transition-colors duration-200"
-            >
-              Review Results
-            </button>
+          {isResearchActive && (
+            <>
+              <button
+                onClick={handleCancelResearch}
+                disabled={isCancelling}
+                className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium
+                           hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500
+                           disabled:opacity-50 disabled:cursor-not-allowed
+                           transition-colors duration-200"
+              >
+                {isCancelling ? (
+                  <>
+                    <span className="inline-block animate-spin mr-2">🔄</span>
+                    Cancelling...
+                  </>
+                ) : (
+                  'Cancel Research'
+                )}
+              </button>
+            </>
+          )}
+
+          {hasCompletedResearch && (
+            <>
+              <button
+                onClick={handleReviewResults}
+                className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium
+                           hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500
+                           transition-colors duration-200"
+              >
+                Review Results
+              </button>
+              <button
+                onClick={handleRestartResearch}
+                disabled={isCancelling}
+                className="bg-orange-600 text-white px-6 py-2 rounded-lg font-medium
+                           hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500
+                           disabled:opacity-50 disabled:cursor-not-allowed
+                           transition-colors duration-200"
+              >
+                {isCancelling ? (
+                  <>
+                    <span className="inline-block animate-spin mr-2">🔄</span>
+                    Restarting...
+                  </>
+                ) : (
+                  'Restart Research'
+                )}
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -382,7 +487,7 @@ export function ResearchProgress(): JSX.Element {
       )}
 
       {/* Research Sections */}
-      {researchProgress && (isResearchActive || isResearchComplete) && (
+      {researchProgress && (isResearchActive || hasCompletedResearch) && (
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1">
           <ResearchSection
             title="Expert Research"

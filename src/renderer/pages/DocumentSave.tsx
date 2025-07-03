@@ -433,9 +433,16 @@ export function DocumentSave() {
                   <span className="font-medium">Project:</span> {currentDocument.projectName}
                 </p>
               </div>
-              <div className="flex space-x-3">
+              <div className="flex flex-wrap gap-3">
                 <Button onClick={handleComplete} className="bg-green-600 hover:bg-green-700">
                   Return to Home
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSaveStep('configure')}
+                  className="border-green-600 text-green-700 hover:bg-green-50"
+                >
+                  Save to Different Location
                 </Button>
                 <Button 
                   variant="outline" 

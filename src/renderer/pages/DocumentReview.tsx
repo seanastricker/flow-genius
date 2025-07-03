@@ -68,7 +68,14 @@ export function DocumentReview() {
       return;
     }
     
-    if (currentDocument.status !== 'research-complete' && currentDocument.status !== 'in-review') {
+    // Allow access to review page if document has any research content
+    // This handles cases where user navigates back from save page
+    const hasResearchContent = (currentDocument.experts && currentDocument.experts.length > 0) ||
+                              (currentDocument.spikyPOVs && currentDocument.spikyPOVs.length > 0) ||
+                              (currentDocument.knowledgeTree && currentDocument.knowledgeTree.length > 0);
+    
+    if (!hasResearchContent) {
+      // Only redirect if there's truly no research content to review
       if (currentDocument.status === 'purpose-definition') {
         navigate('/purpose');
       } else if (currentDocument.status === 'research-active') {
@@ -79,7 +86,7 @@ export function DocumentReview() {
       return;
     }
     
-    // Set status to in-review when user enters this page
+    // Set status to in-review when user enters this page (if not already completed)
     if (currentDocument.status === 'research-complete') {
       setDocumentStatus('in-review');
     }
