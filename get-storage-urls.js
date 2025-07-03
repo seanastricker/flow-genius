@@ -53,9 +53,9 @@ async function getDownloadUrls() {
     console.log('\n📋 Copy these URLs into update-download-urls.js:');
     console.log('='.repeat(60));
     
-    const installerUrl = urls['BrainLift Generator-0.1.0.exe'] || 'NOT_FOUND';
-    const x64Url = urls['BrainLift Generator-0.1.0-x64.exe'] || 'NOT_FOUND';
-    const ia32Url = urls['BrainLift Generator-0.1.0-ia32.exe'] || 'NOT_FOUND';
+    const installerUrl = urls['BrainSwift-0.1.0.exe'] || 'NOT_FOUND';
+    const x64Url = urls['BrainSwift-0.1.0-x64.exe'] || 'NOT_FOUND';
+    const ia32Url = urls['BrainSwift-0.1.0-ia32.exe'] || 'NOT_FOUND';
 
     console.log(`
 const FIREBASE_URLS = {

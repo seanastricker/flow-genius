@@ -16,14 +16,14 @@ Since automated upload is having issues with the project configuration, here's h
 Navigate to the "downloads" folder and upload these files:
 
 ### Files to Upload:
-1. **BrainLift Generator-0.1.0.exe** (195MB)
-   - From: `website/temp_downloads/BrainLift Generator-0.1.0.exe`
+1. **BrainSwift-0.1.0.exe** (180MB)
+   - From: `release/BrainSwift-0.1.0.exe`
 
-2. **BrainLift Generator-0.1.0-x64.exe** (100MB)
-   - From: `website/temp_downloads/BrainLift Generator-0.1.0-x64.exe`
+2. **BrainSwift-0.1.0-x64.exe** (92MB)
+   - From: `release/BrainSwift-0.1.0-x64.exe`
 
-3. **BrainLift Generator-0.1.0-ia32.exe** (96MB)
-   - From: `website/temp_downloads/BrainLift Generator-0.1.0-ia32.exe`
+3. **BrainSwift-0.1.0-ia32.exe** (88MB)
+   - From: `release/BrainSwift-0.1.0-ia32.exe`
 
 ## Step 4: Get Download URLs
 For each uploaded file:
@@ -37,7 +37,7 @@ I'll help you update the website with the new URLs once you have them.
 ## Expected URLs Format:
 The URLs will look like:
 ```
-https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.appspot.com/o/downloads%2FBrainLift%20Generator-0.1.0.exe?alt=media&token=[token]
+https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.appspot.com/o/downloads%2FBrainSwift-0.1.0.exe?alt=media&token=[token]
 ```
 
 Let me know when you've uploaded the files and have the URLs! 

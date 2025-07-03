@@ -45,7 +45,7 @@ function HomePage() {
       <div className="container mx-auto px-4 py-8">
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-slate-900 mb-2">
-            BrainLift Generator
+            BrainSwift
           </h1>
           <p className="text-slate-600">
             AI-powered desktop application for creating BrainLift documents
@@ -55,7 +55,7 @@ function HomePage() {
         <main className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-8">
             <h2 className="text-2xl font-semibold text-slate-800 mb-4">
-              Welcome to BrainLift Generator
+              Welcome to BrainSwift
             </h2>
             <p className="text-slate-600 mb-6">
               This application will help you create structured BrainLift documents 

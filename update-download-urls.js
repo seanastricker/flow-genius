@@ -10,9 +10,9 @@ const path = require('path');
 
 // You'll paste the Firebase Storage URLs here
 const FIREBASE_URLS = {
-  'installer': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainLift%20Generator-0.1.0.exe?alt=media&token=3560680d-2733-4a99-9659-fb727b2e5c61',     // BrainLift Generator-0.1.0.exe
-  'x64': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainLift%20Generator-0.1.0-x64.exe?alt=media&token=b92a6e2c-1aee-411e-8e13-f1a20f0c4890',                 // BrainLift Generator-0.1.0-x64.exe  
-  'ia32': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainLift%20Generator-0.1.0-ia32.exe?alt=media&token=5cbf7ff3-347b-4348-97e1-98aed2a9ff1e'                // BrainLift Generator-0.1.0-ia32.exe
+  'installer': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainSwift-0.1.0.exe?alt=media&token=8d3f496a-da76-4d1b-91aa-b47b1224ecff',     // BrainLift Generator-0.1.0.exe
+  'x64': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainSwift-0.1.0-x64.exe?alt=media&token=61ebd8d0-b3dc-4e64-b8ac-57e6033e66cf',                 // BrainLift Generator-0.1.0-x64.exe  
+  'ia32': 'https://firebasestorage.googleapis.com/v0/b/flowgenius-fdbc2.firebasestorage.app/o/downloads%2FBrainSwift-0.1.0-ia32.exe?alt=media&token=f352fe79-739c-4cf4-8140-726814c3df8e'                // BrainLift Generator-0.1.0-ia32.exe
 };
 
 function updateWebsiteHTML() {
@@ -39,9 +39,9 @@ function updateWebsiteHTML() {
     console.log('\n📋 Instructions:');
     console.log('1. Edit this script (update-download-urls.js)');
     console.log('2. Replace the placeholder URLs with your Firebase Storage URLs:');
-    console.log('   - installer: URL for BrainLift Generator-0.1.0.exe');
-    console.log('   - x64: URL for BrainLift Generator-0.1.0-x64.exe');
-    console.log('   - ia32: URL for BrainLift Generator-0.1.0-ia32.exe');
+    console.log('   - installer: URL for BrainSwift-0.1.0.exe');
+    console.log('   - x64: URL for BrainSwift-0.1.0-x64.exe');
+    console.log('   - ia32: URL for BrainSwift-0.1.0-ia32.exe');
     console.log('3. Run this script again: node update-download-urls.js');
     return false;
   }
@@ -50,19 +50,19 @@ function updateWebsiteHTML() {
 
   // Update installer URL
   html = html.replace(
-    /href="downloads\/BrainLift Generator-0\.1\.0\.exe"/g,
+    /href="downloads\/BrainSwift-0\.1\.0\.exe"/g,
     `href="${FIREBASE_URLS.installer}"`
   );
 
   // Update 64-bit portable URL
   html = html.replace(
-    /href="downloads\/BrainLift Generator-0\.1\.0-x64\.exe"/g,
+    /href="downloads\/BrainSwift-0\.1\.0-x64\.exe"/g,
     `href="${FIREBASE_URLS.x64}"`
   );
 
   // Update 32-bit portable URL
   html = html.replace(
-    /href="downloads\/BrainLift Generator-0\.1\.0-ia32\.exe"/g,
+    /href="downloads\/BrainSwift-0\.1\.0-ia32\.exe"/g,
     `href="${FIREBASE_URLS.ia32}"`
   );
 
@@ -94,7 +94,7 @@ function showInstructions() {
 
 // Main execution
 if (require.main === module) {
-  console.log('🌐 BrainLift Generator - Download URL Updater');
+  console.log('🌐 BrainSwift - Download URL Updater');
   console.log('==============================================\n');
 
   const success = updateWebsiteHTML();

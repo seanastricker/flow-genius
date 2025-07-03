@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * BrainLift Generator Deployment Script
+ * BrainSwift Deployment Script
  * Automates the build and release process
  */
 
@@ -192,7 +192,7 @@ function createRelease(version) {
  * Main deployment function
  */
 function main() {
-  console.log('🚀 BrainLift Generator Deployment Script');
+  console.log('🚀 BrainSwift Deployment Script');
   console.log('=========================================');
 
   const args = process.argv.slice(2);

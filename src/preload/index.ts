@@ -25,7 +25,7 @@ interface WorkerJob {
 const electronAPI = {
   // App information
   getAppInfo: () => ({
-    name: 'BrainLift Generator',
+    name: 'BrainSwift',
     version: '0.1.0'
   }),
 

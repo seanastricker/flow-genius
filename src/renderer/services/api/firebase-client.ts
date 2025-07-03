@@ -2,7 +2,7 @@
  * Firebase Client Configuration and Services
  * 
  * This file handles Firebase initialization, authentication, and Firestore operations
- * for the BrainLift Generator application. It provides offline-first functionality
+ * for the BrainSwift application. It provides offline-first functionality
  * with automatic synchronization when online.
  */
 

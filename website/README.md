@@ -1,6 +1,6 @@
-# BrainLift Generator - Download Website
+# BrainSwift - Download Website
 
-This directory contains the complete download website for BrainLift Generator.
+This directory contains the complete download website for BrainSwift.
 
 ## Files
 

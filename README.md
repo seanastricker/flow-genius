@@ -1,4 +1,4 @@
-# BrainLift Generator
+# BrainSwift
 
 **An AI-powered desktop application that automates the creation of BrainLift documents - structured prompts that guide Large Language Models beyond consensus thinking to identify contrarian viewpoints with evidence.**
 
@@ -8,7 +8,7 @@
 
 ## 🎯 Project Overview
 
-The BrainLift Generator transforms a time-intensive manual process into an automated workflow, reducing BrainLift document creation time from **hours to minutes**. The application combines interactive Purpose refinement with intelligent background research workflows to generate comprehensive, multi-perspective research documents.
+BrainSwift transforms a time-intensive manual process into an automated workflow, reducing BrainLift document creation time from **hours to minutes**. The application combines interactive Purpose refinement with intelligent background research workflows to generate comprehensive, multi-perspective research documents.
 
 ### The Problem
 Creating BrainLift documents manually requires extensive research across multiple domains:

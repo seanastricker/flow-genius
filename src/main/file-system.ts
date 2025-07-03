@@ -147,7 +147,7 @@ export function initializeFileSystemHandlers(): void {
       await fs.ensureDir(docsDir);
       
       // Create a basic README in the project
-      const readmeContent = `# ${projectName}\n\nCreated by BrainLift Generator on ${new Date().toLocaleDateString()}\n`;
+      const readmeContent = `# ${projectName}\n\nCreated by BrainSwift on ${new Date().toLocaleDateString()}\n`;
       await fs.writeFile(path.join(projectDir, 'README.md'), readmeContent, 'utf-8');
       
       return {

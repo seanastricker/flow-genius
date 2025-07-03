@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Upload BrainLift Generator files to Firebase Storage
+ * Upload BrainSwift files to Firebase Storage
  * This script uploads the .exe files and generates public download URLs
  */
 
@@ -23,9 +23,9 @@ async function uploadFiles() {
     const storage = getStorage(app);
 
     const files = [
-      'BrainLift Generator-0.1.0.exe',
-      'BrainLift Generator-0.1.0-x64.exe', 
-      'BrainLift Generator-0.1.0-ia32.exe'
+      'BrainSwift-0.1.0.exe',
+      'BrainSwift-0.1.0-x64.exe', 
+      'BrainSwift-0.1.0-ia32.exe'
     ];
 
     const downloadUrls = {};

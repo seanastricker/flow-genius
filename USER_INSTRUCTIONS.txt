@@ -1,11 +1,11 @@
-# BrainLift Generator - Setup Instructions
+# BrainSwift - Setup Instructions
 
 ## Installation
-1. Download "BrainLift Generator-0.1.0-x64.exe" (recommended for modern computers)
-   OR download "BrainLift Generator-0.1.0.exe" (works on all computers)
+1. Download "BrainSwift-0.1.0-x64.exe" (recommended for modern computers)
+   OR download "BrainSwift-0.1.0.exe" (works on all computers)
 2. Run the downloaded file
 3. Follow the installation wizard
-4. Launch "BrainLift Generator" from your desktop or Start menu
+4. Launch "BrainSwift" from your desktop or Start menu
 
 ## First-Time Setup
 1. Get your API keys:
@@ -29,9 +29,9 @@
 - Internet connection (required for research features)
 
 ## File Information
-- BrainLift Generator-0.1.0-x64.exe (104MB) - For 64-bit Windows (recommended)
-- BrainLift Generator-0.1.0.exe (203MB) - Universal installer (works on all systems)
-- BrainLift Generator-0.1.0-ia32.exe (99MB) - For older 32-bit systems
+- BrainSwift-0.1.0-x64.exe (92MB) - For 64-bit Windows (recommended)
+- BrainSwift-0.1.0.exe (180MB) - Universal installer (works on all systems)
+- BrainSwift-0.1.0-ia32.exe (88MB) - For older 32-bit systems
 
 ## Troubleshooting
 - If Windows Defender blocks the installation, click "More info" → "Run anyway"

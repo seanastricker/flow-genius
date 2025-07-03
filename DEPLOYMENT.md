@@ -1,6 +1,6 @@
-# BrainLift Generator - Website Deployment Guide
+# BrainSwift - Website Deployment Guide
 
-This guide explains how to deploy your BrainLift Generator application to a website for easy distribution.
+This guide explains how to deploy your BrainSwift application to a website for easy distribution.
 
 ## Quick Start
 
@@ -87,9 +87,9 @@ After running deployment, you'll have:
 website/
 ├── index.html              # Main download page
 ├── downloads/               # Application files
-│   ├── BrainLift Generator-0.1.0.exe         # Windows installer (~195MB)
-│   ├── BrainLift Generator-0.1.0-x64.exe     # 64-bit portable (~100MB)
-│   ├── BrainLift Generator-0.1.0-ia32.exe    # 32-bit portable (~96MB)
+│   ├── BrainSwift-0.1.0.exe         # Windows installer (~180MB)
+│   ├── BrainSwift-0.1.0-x64.exe     # 64-bit portable (~92MB)
+│   ├── BrainSwift-0.1.0-ia32.exe    # 32-bit portable (~88MB)
 │   └── latest.yml           # Auto-updater info
 ├── deployment-info.json     # Deployment metadata
 └── test-server.js          # Local testing server

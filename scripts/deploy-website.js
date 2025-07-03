@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Website Deployment Script for BrainLift Generator
+ * Website Deployment Script for BrainSwift
  * Builds the application and updates the download website
  */
 
@@ -43,7 +43,7 @@ function getPackageData() {
  * Build the application
  */
 function buildApplication() {
-  console.log('\n🏗️  Building BrainLift Generator...');
+  console.log('\n🏗️  Building BrainSwift...');
   
   // Clean previous build
   exec('npm run build:vite');
@@ -85,9 +85,9 @@ function copyBuildFiles(downloadsDir) {
   
   // Define file patterns to copy
   const filesToCopy = [
-    `BrainLift Generator-${version}.exe`,           // Installer
-    `BrainLift Generator-${version}-x64.exe`,       // 64-bit portable
-    `BrainLift Generator-${version}-ia32.exe`,      // 32-bit portable
+    `BrainSwift-${version}.exe`,           // Installer
+    `BrainSwift-${version}-x64.exe`,       // 64-bit portable
+    `BrainSwift-${version}-ia32.exe`,      // 32-bit portable
     'latest.yml'                                     // Auto-updater info
   ];
   
@@ -185,7 +185,7 @@ function createTestServer(websiteDir) {
   const serverScript = `#!/usr/bin/env node
 
 /**
- * Simple HTTP server for testing BrainLift Generator website
+    * Simple HTTP server for testing BrainSwift website
  * Run with: node test-server.js
  */
 
@@ -300,7 +300,7 @@ function displaySummary(websiteDir, deployInfo) {
  * Main deployment function
  */
 function main() {
-  console.log('🚀 BrainLift Generator Website Deployment');
+  console.log('🚀 BrainSwift Website Deployment');
   console.log('==========================================');
 
   const args = process.argv.slice(2);

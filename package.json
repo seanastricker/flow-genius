@@ -1,15 +1,15 @@
 {
-  "name": "brainlift-generator",
+  "name": "brainswift",
   "version": "0.1.0",
   "description": "AI-powered desktop application for creating BrainLift documents",
   "main": "dist-electron/main/index.js",
-  "author": "BrainLift Generator Team",
+  "author": "BrainSwift Team",
   "license": "MIT",
   "private": true,
-  "homepage": "https://github.com/yourusername/brainlift-generator",
+  "homepage": "https://github.com/yourusername/brainswift",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/brainlift-generator.git"
+    "url": "https://github.com/yourusername/brainswift.git"
   },
   "scripts": {
     "dev": "vite",
@@ -79,9 +79,9 @@
     "node": ">=18.0.0"
   },
   "build": {
-    "appId": "com.brainlift.generator",
-    "productName": "BrainLift Generator",
-    "copyright": "Copyright © 2024 BrainLift Generator Team",
+    "appId": "com.brainswift.app",
+    "productName": "BrainSwift",
+    "copyright": "Copyright © 2024 BrainSwift Team",
     "buildVersion": "1.0.0",
     "directories": {
       "output": "release"
@@ -114,7 +114,7 @@
         }
       ],
       "artifactName": "${productName}-${version}-${arch}.${ext}",
-      "publisherName": "BrainLift Generator Team",
+      "publisherName": "BrainSwift Team",
       "verifyUpdateCodeSignature": false
     },
     "nsis": {
@@ -124,7 +124,7 @@
       "deleteAppDataOnUninstall": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "BrainLift Generator"
+      "shortcutName": "BrainSwift"
     },
     "mac": {
       "target": [
@@ -158,7 +158,7 @@
     "publish": {
       "provider": "github",
       "owner": "yourusername",
-      "repo": "brainlift-generator",
+      "repo": "brainswift",
       "private": false
     }
   }

@@ -1,7 +1,7 @@
-BrainLift Generator - Setup Instructions
-==========================================
+BrainSwift - Setup Instructions
+=====================================
 
-Thank you for installing BrainLift Generator!
+Thank you for installing BrainSwift!
 
 QUICK START GUIDE
 -----------------
@@ -20,7 +20,7 @@ QUICK START GUIDE
      - Free tier: 1000 searches/month
 
 2. FIRST TIME SETUP
-   - Launch BrainLift Generator
+   - Launch BrainSwift
    - The app will prompt for API keys on first use
    - Enter your API keys securely (they're stored locally)
    - Create your first BrainLift document!

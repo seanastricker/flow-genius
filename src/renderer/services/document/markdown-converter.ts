@@ -263,7 +263,7 @@ function generateKnowledgeTreeSection(knowledgeTree: KnowledgeTreeSection[], con
 function generateFooter(): string {
   return [
     '---',
-    `*Generated on ${new Date().toISOString()} by BrainLift Generator*`
+    `*Generated on ${new Date().toISOString()} by BrainSwift*`
   ].join('\n');
 }
 

@@ -2,7 +2,7 @@
  * Authentication Store
  * 
  * This store manages Firebase authentication state, including anonymous sign-in
- * and user session management for the BrainLift Generator application.
+ * and user session management for the BrainSwift application.
  */
 
 import { create } from 'zustand';
