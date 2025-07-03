@@ -111,3 +111,7 @@ app/out/
 *.p12
 *.cer
 *.pem 
+
+# Large executable files (hosted on Firebase Storage)
+website/temp_downloads/*.exe
+*.exe
