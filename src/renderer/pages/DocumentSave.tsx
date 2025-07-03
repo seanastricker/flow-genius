@@ -439,7 +439,18 @@ export function DocumentSave() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => window.electronAPI.openExternal(`file://${saveResult.filePath}`)}
+                  onClick={async () => {
+                    try {
+                      if (saveResult.filePath) {
+                        const result = await window.electronAPI.showItemInFolder(saveResult.filePath);
+                        if (!result.success) {
+                          console.error('Failed to open file location:', result.error);
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Error opening file location:', error);
+                    }
+                  }}
                 >
                   Open File Location
                 </Button>

@@ -39,6 +39,9 @@ const electronAPI = {
 
   // External links
   openExternal: (url: string) => ipcRenderer.invoke('app:open-external', url),
+  
+  // File system operations
+  showItemInFolder: (filePath: string) => ipcRenderer.invoke('app:show-item-in-folder', filePath),
 
   // File system API
   fileSystem: {

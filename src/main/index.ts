@@ -140,4 +140,36 @@ function setupIpcHandlers() {
       return { success: false, error: error instanceof Error ? error.message : String(error) };
     }
   });
+
+  // Handle showing files in file explorer
+  ipcMain.handle('app:show-item-in-folder', async (event, filePath: string) => {
+    try {
+      // Validate file path for security
+      if (!filePath || typeof filePath !== 'string') {
+        throw new Error('Invalid file path provided');
+      }
+
+      // Basic path traversal protection
+      if (filePath.includes('..') || filePath.includes('<') || filePath.includes('>')) {
+        throw new Error('Invalid characters in file path');
+      }
+
+      // Ensure the path is absolute and within expected directories
+      const path = require('path');
+      const resolvedPath = path.resolve(filePath);
+      const baseDirectory = 'C:\\Users\\seana\\OneDrive\\Documents\\Gauntlet Projects';
+      
+      if (!resolvedPath.startsWith(baseDirectory)) {
+        throw new Error('File path outside allowed directory');
+      }
+
+      // Show the file in the system file explorer
+      shell.showItemInFolder(resolvedPath);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to show item in folder:', error);
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  });
 } 
