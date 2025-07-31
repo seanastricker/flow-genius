@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // BrainLift documents - users can only access their own documents
+    match /brainlifts/{documentId} {
+      // Allow read/write if the document belongs to the authenticated user
+      allow read, write: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+      
+      // Allow create if the document is being created for the authenticated user
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.userId;
+        
+      // Allow delete if the document belongs to the authenticated user
+      allow delete: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -23,15 +23,15 @@ async function uploadFiles() {
     const storage = getStorage(app);
 
     const files = [
-      'BrainSwift-0.1.0.exe',
-      'BrainSwift-0.1.0-x64.exe', 
-      'BrainSwift-0.1.0-ia32.exe'
+      'BrainSwift-1.0.0.exe',
+      'BrainSwift-1.0.0-x64.exe', 
+      'BrainSwift-1.0.0-ia32.exe'
     ];
 
     const downloadUrls = {};
 
     for (const fileName of files) {
-      const filePath = path.join('website', 'temp_downloads', fileName);
+      const filePath = path.join('temp_downloads', fileName);
       
       if (!fs.existsSync(filePath)) {
         console.log(`❌ File not found: ${fileName}`);
@@ -51,7 +51,7 @@ async function uploadFiles() {
         contentType: 'application/octet-stream',
         customMetadata: {
           'originalName': fileName,
-          'version': '0.1.0'
+          'version': '1.0.0'
         }
       });
       

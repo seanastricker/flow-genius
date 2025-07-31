@@ -170,30 +170,45 @@ export class FirebaseClient {
         return { success: false, error: 'User not authenticated' };
       }
 
+      // Helper function to remove undefined values from objects
+      const removeUndefined = (obj: any): any => {
+        if (obj === null || obj === undefined) return null;
+        if (typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) return obj.map(removeUndefined).filter(item => item !== undefined);
+        
+        const cleaned: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+          if (value !== undefined) {
+            cleaned[key] = removeUndefined(value);
+          }
+        }
+        return cleaned;
+      };
+
       // Prepare document for Firestore (convert dates to server timestamps where needed)
-      const docData = {
+      const docData = removeUndefined({
         ...document,
         userId: this.currentUser.uid,
         updatedAt: serverTimestamp(),
         // Convert Date objects to ISO strings for consistent serialization
         createdAt: document.createdAt instanceof Date ? document.createdAt.toISOString() : document.createdAt,
-        chatHistory: document.chatHistory.map(msg => ({
+        chatHistory: document.chatHistory?.map(msg => ({
           ...msg,
           timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : msg.timestamp
-        })),
-        experts: document.experts.map(expert => ({
+        })) || [],
+        experts: document.experts?.map(expert => ({
           ...expert,
           lastUpdated: expert.lastUpdated instanceof Date ? expert.lastUpdated.toISOString() : expert.lastUpdated
-        })),
-        spikyPOVs: document.spikyPOVs.map(spiky => ({
+        })) || [],
+        spikyPOVs: document.spikyPOVs?.map(spiky => ({
           ...spiky,
           lastUpdated: spiky.lastUpdated instanceof Date ? spiky.lastUpdated.toISOString() : spiky.lastUpdated
-        })),
-        knowledgeTree: document.knowledgeTree.map(knowledge => ({
+        })) || [],
+        knowledgeTree: document.knowledgeTree?.map(knowledge => ({
           ...knowledge,
           lastUpdated: knowledge.lastUpdated instanceof Date ? knowledge.lastUpdated.toISOString() : knowledge.lastUpdated
-        }))
-      };
+        })) || []
+      });
 
       const docRef = doc(this.db, 'brainlifts', document.id);
       await setDoc(docRef, docData);

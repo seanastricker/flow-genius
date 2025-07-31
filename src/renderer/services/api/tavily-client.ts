@@ -89,7 +89,7 @@ export class TavilyClient {
   private apiKey: string;
   private baseUrl = 'https://api.tavily.com';
   private requestCount = 0;
-  private dailyLimit = 1000;
+  private dailyLimit = 2500; // Match account monthly limit
   private rateLimiter: RateLimiter;
 
   constructor(apiKey: string) {
@@ -220,6 +220,7 @@ export class TavilyClient {
 
     const data = await response.json();
     this.requestCount++;
+    console.log(`📊 Tavily API usage: ${this.requestCount}/${this.dailyLimit} requests today`);
     
     return data;
   }

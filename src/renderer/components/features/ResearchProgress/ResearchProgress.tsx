@@ -72,8 +72,8 @@ interface ResearchSectionProps {
   description: string;
   progress: number;
   status: 'pending' | 'running' | 'completed' | 'error';
-  startTime?: Date;
-  completedTime?: Date;
+  startTime?: Date | string;
+  completedTime?: Date | string;
   errorMessage?: string;
 }
 
@@ -89,14 +89,16 @@ function ResearchSection({
   completedTime,
   errorMessage 
 }: ResearchSectionProps): JSX.Element {
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (date: Date | string) => {
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const getEstimatedCompletion = () => {
     if (!startTime || status === 'completed' || status === 'error') return null;
     
-    const elapsed = Date.now() - startTime.getTime();
+    const startTimeObj = startTime instanceof Date ? startTime : new Date(startTime);
+    const elapsed = Date.now() - startTimeObj.getTime();
     const rate = progress / elapsed;
     const remaining = (100 - progress) / rate;
     const estimated = new Date(Date.now() + remaining);

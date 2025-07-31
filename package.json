@@ -1,6 +1,6 @@
 {
   "name": "brainswift",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "AI-powered desktop application for creating BrainLift documents",
   "main": "dist-electron/main/index.js",
   "author": "BrainSwift Team",
