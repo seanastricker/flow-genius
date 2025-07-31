@@ -5,9 +5,11 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      "temp_downloads/**",
-      "**/*.exe"
+      "temp_downloads/**"
     ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
   },
   "storage": {
     "rules": "storage.rules"
