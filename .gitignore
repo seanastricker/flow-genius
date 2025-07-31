@@ -115,3 +115,24 @@ app/out/
 # Large executable files (hosted on Firebase Storage)
 website/temp_downloads/*.exe
 *.exe
+# Electron build artifacts (should not be in project root)
+*.dll
+*.pak
+*.bin
+*.dat
+icudtl.dat
+resources.pak
+snapshot_blob.bin
+v8_context_snapshot.bin
+chrome_*_percent.pak
+LICENSE.electron.txt
+LICENSES.chromium.html
+locales/
+resources/app.asar
+resources/app-update.yml
+vulkan-1.dll
+vk_swiftshader.*
+libEGL.dll
+libGLESv2.dll
+d3dcompiler_47.dll
+ffmpeg.dll
